@@ -268,17 +268,6 @@
 	}
 
 	/* Checklist. */
-	const manual = {
-		hover: {
-			text: 'Hover a swapped link (red "archived" tag): the browser shows a web-wp.archive.org/web/ address',
-			state: 'todo',
-		},
-		click: {
-			text: 'Click a swapped link: it opens the Wayback Machine copy',
-			state: 'todo',
-		},
-	};
-
 	function checklist() {
 		const items = [];
 		const add = ( id, text, state, detail ) =>
@@ -324,10 +313,6 @@
 			'No REST check for any excluded link',
 			! excluded.length ? 'n/a' : excludedCalls.length ? 'fail' : 'pass',
 			excludedCalls.map( ( r ) => r.link.id ).join( ', ' )
-		);
-
-		Object.keys( manual ).forEach( ( id ) =>
-			add( id, manual[ id ].text, manual[ id ].state, 'manual' )
 		);
 
 		return items;
@@ -498,10 +483,7 @@
 				( item ) =>
 					'<li class="lfh-' + esc( item.state === 'n/a' ? 'na' : item.state ) + '">' +
 					'<span class="lfh-state">' + icon[ item.state ] + '</span> ' + esc( item.text ) +
-					( item.detail && item.detail !== 'manual' ? ' <em>(' + esc( item.detail ) + ')</em>' : '' ) +
-					( item.detail === 'manual'
-						? ' <button type="button" data-manual="' + esc( item.id ) + '" data-value="pass">Pass</button><button type="button" data-manual="' + esc( item.id ) + '" data-value="fail">Fail</button>'
-						: '' ) +
+					( item.detail ? ' <em>(' + esc( item.detail ) + ')</em>' : '' ) +
 					'</li>'
 			)
 			.join( '' );
@@ -604,11 +586,6 @@
 		// Buttons, not links, so the Link Fixer does not pick them up as page links.
 		if ( button && button.dataset.go ) {
 			location.href = button.dataset.go;
-			return;
-		}
-		if ( button && button.dataset.manual ) {
-			manual[ button.dataset.manual ].state = button.dataset.value;
-			render();
 			return;
 		}
 		const row = event.target.closest( 'tr.lfh-row' );
