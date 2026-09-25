@@ -11,8 +11,21 @@ Test harness for the [Internet Archive Wayback Machine Link Fixer](https://githu
 
 | Blueprint | Open |
 |---|---|
+| **Link Fixer Tests: every suite, run with one button** | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/blueprints/tests.json) |
 | Broken links on the page: one post with a link in every state | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/blueprints/mixed-links.json) |
 | Display modes and link icons: five pages, one per setting | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/blueprints/display-modes.json) |
+
+## Test runner
+
+The Tests blueprint lands on **Link Fixer Tests** in wp-admin. Press **Run all tests** (or **Run this suite**) and watch: the runner opens each page itself, scrolls, moves time forward, clicks through forms and switches settings, and a strip across the top shows the suite, the step and the running pass/fail count. When it finishes, the page shows every step with a green tick or red cross in plain English, with the technical detail folded away under "Details for developers". **Copy report** puts a Markdown version on the clipboard for a ticket.
+
+Suites are data. Each is a class extending `Suite` whose `steps()` returns plain English steps, each with server `setup` actions, a page to `open`, `checks` (in the browser and on the server) and `then` actions (click, tick, fill). The format is documented at the top of `src/Suite.php`.
+
+| Suite | Steps |
+|---|---|
+| Broken links on the page | 5 |
+| Display modes and link icons | 5 |
+| First run setup wizard | 17 |
 
 ## URL scripts
 

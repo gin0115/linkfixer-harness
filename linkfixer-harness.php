@@ -25,6 +25,13 @@ require_once LFH_PATH . 'src/Scenario.php';
 require_once LFH_PATH . 'src/Scenario_Mixed_Links.php';
 require_once LFH_PATH . 'src/Scenario_Display_Modes.php';
 require_once LFH_PATH . 'src/Scenarios.php';
+require_once LFH_PATH . 'src/Suite.php';
+require_once LFH_PATH . 'src/Suite_Links_On_Page.php';
+require_once LFH_PATH . 'src/Suite_Display_Modes.php';
+require_once LFH_PATH . 'src/Suite_Setup_Wizard.php';
+require_once LFH_PATH . 'src/Suites.php';
+require_once LFH_PATH . 'src/Runner.php';
+require_once LFH_PATH . 'src/Tests_Page.php';
 require_once LFH_PATH . 'src/Rest.php';
 require_once LFH_PATH . 'src/Widget.php';
 
@@ -63,6 +70,8 @@ function boot(): void {
 
 	Call_Log::init();
 	Scenarios::init();
+	Runner::init();
+	Tests_Page::init();
 	Rest::init();
 	Widget::init();
 }
