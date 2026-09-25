@@ -1,0 +1,194 @@
+/* Link Fixer Harness panel. */
+
+#lfh-panel {
+	position: fixed;
+	right: 12px;
+	bottom: 12px;
+	z-index: 100000;
+	width: min( 560px, calc( 100vw - 24px ) );
+	max-height: 75vh;
+	overflow: auto;
+	background: #fff;
+	color: #1e1e1e;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	box-shadow: 0 6px 24px rgba( 0, 0, 0, 0.2 );
+	font: 12px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	text-align: left;
+}
+
+#lfh-panel.lfh-collapsed {
+	width: auto;
+}
+
+#lfh-panel * {
+	box-sizing: border-box;
+	font: inherit;
+	color: inherit;
+	letter-spacing: normal;
+	text-transform: none;
+}
+
+#lfh-panel .lfh-head {
+	position: sticky;
+	top: 0;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding: 8px 10px;
+	background: #1d2327;
+	color: #fff;
+}
+
+#lfh-panel .lfh-head span {
+	flex: 1;
+	opacity: 0.75;
+}
+
+#lfh-panel .lfh-body {
+	padding: 8px 10px 12px;
+}
+
+#lfh-panel p,
+#lfh-panel ul,
+#lfh-panel h4 {
+	margin: 0 0 6px;
+	padding: 0;
+}
+
+#lfh-panel h4 {
+	margin-top: 10px;
+	font-weight: 600;
+}
+
+#lfh-panel a {
+	color: #2271b1;
+	text-decoration: underline;
+}
+
+#lfh-panel button,
+#lfh-panel select {
+	margin: 0 4px 4px 0;
+	padding: 2px 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 3px;
+	background: #f6f7f7;
+	cursor: pointer;
+}
+
+#lfh-panel .lfh-head button {
+	background: transparent;
+	color: #fff;
+	border-color: rgba( 255, 255, 255, 0.5 );
+}
+
+#lfh-panel .lfh-status {
+	padding: 4px 6px;
+	background: #f0f6fc;
+}
+
+#lfh-panel .lfh-checklist {
+	list-style: none;
+}
+
+#lfh-panel .lfh-checklist li {
+	padding: 2px 0;
+}
+
+#lfh-panel .lfh-checklist button {
+	margin-left: 4px;
+	padding: 0 6px;
+}
+
+#lfh-panel .lfh-state {
+	display: inline-block;
+	width: 1.2em;
+	font-weight: 700;
+	text-align: center;
+}
+
+#lfh-panel .lfh-pass .lfh-state {
+	color: #00a32a;
+}
+
+#lfh-panel .lfh-fail .lfh-state {
+	color: #d63638;
+}
+
+#lfh-panel .lfh-waiting .lfh-state,
+#lfh-panel .lfh-todo .lfh-state {
+	color: #dba617;
+}
+
+#lfh-panel .lfh-scroll .lfh-state,
+#lfh-panel .lfh-na .lfh-state {
+	color: #8c8f94;
+}
+
+#lfh-panel .lfh-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+#lfh-panel .lfh-table th,
+#lfh-panel .lfh-table td {
+	padding: 3px 4px;
+	border-bottom: 1px solid #f0f0f1;
+	vertical-align: top;
+}
+
+#lfh-panel .lfh-table th {
+	font-weight: 600;
+	text-align: left;
+}
+
+#lfh-panel .lfh-row {
+	cursor: pointer;
+}
+
+#lfh-panel .lfh-row.lfh-fail {
+	background: #fcf0f1;
+}
+
+#lfh-panel .lfh-detail td {
+	background: #f6f7f7;
+}
+
+#lfh-panel .lfh-problems {
+	color: #d63638;
+	font-weight: 600;
+}
+
+/* Seeded links in the post. */
+
+a[data-lfh-state] {
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+a[data-lfh-state="pass"] {
+	outline: 2px solid #00a32a;
+}
+
+a[data-lfh-state="fail"] {
+	outline: 2px solid #d63638;
+}
+
+a[data-lfh-state="waiting"] {
+	outline: 2px solid #dba617;
+}
+
+a[data-lfh-state="scroll"] {
+	outline: 2px dashed #8c8f94;
+}
+
+a.iawmlf-broken-link[data-lfh-state]::after {
+	content: "archived";
+	margin-left: 6px;
+	padding: 0 4px;
+	border-radius: 2px;
+	background: #d63638;
+	color: #fff;
+	font-size: 10px;
+	vertical-align: middle;
+}
