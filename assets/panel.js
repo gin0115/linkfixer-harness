@@ -143,10 +143,11 @@
 			fetches: LOG.fetches.filter(
 				( f ) => norm( f.link ) === norm( row.link.url )
 			),
+			// Link::get_stored_archived_href() rewrites web.archive.org/web/ to web-wp.archive.org/web/.
 			swapped: row.anchors.some(
 				( a ) =>
 					a.classList.contains( 'iawmlf-broken-link' ) &&
-					( a.getAttribute( 'href' ) || '' ).indexOf( 'web.archive.org' ) !== -1
+					/archive\.org\/web\//.test( a.getAttribute( 'href' ) || '' )
 			),
 			attributes: row.anchors.some( ( a ) =>
 				a.hasAttribute( 'data-iawmlf-archived-url' )
@@ -269,7 +270,7 @@
 	/* Checklist. */
 	const manual = {
 		hover: {
-			text: 'Hover a swapped link (red outline): the browser shows a web.archive.org address',
+			text: 'Hover a swapped link (red "archived" tag): the browser shows a web-wp.archive.org/web/ address',
 			state: 'todo',
 		},
 		click: {
