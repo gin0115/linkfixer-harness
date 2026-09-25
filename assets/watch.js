@@ -89,11 +89,13 @@
 	];
 
 	new MutationObserver( ( list ) => {
+		let changed = false;
 		for ( const mutation of list ) {
 			const anchor = mutation.target;
 			if ( anchor.tagName !== 'A' ) {
 				continue;
 			}
+			changed = true;
 			if (
 				mutation.attributeName === 'href' &&
 				! anchor.hasAttribute( 'data-lfh-original-href' )
@@ -111,7 +113,10 @@
 				to: anchor.getAttribute( mutation.attributeName ),
 			} );
 		}
-		emit( 'lfh:mutation' );
+		// Only links matter. Emitting for anything else lets the panel's own updates loop forever.
+		if ( changed ) {
+			emit( 'lfh:mutation' );
+		}
 	} ).observe( document.documentElement, {
 		subtree: true,
 		attributes: true,

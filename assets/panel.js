@@ -461,7 +461,7 @@
 				const post = P.posts[ role ];
 				return role === P.role
 					? '<strong>' + esc( post.title ) + '</strong>'
-					: '<a href="' + esc( post.url ) + '">' + esc( post.title ) + '</a>';
+					: '<button type="button" data-go="' + esc( post.url ) + '">' + esc( post.title ) + '</button>';
 			} )
 			.join( ' · ' );
 
@@ -505,7 +505,10 @@
 			)
 			.join( '' );
 
-		panel.className = collapsed ? 'lfh-collapsed' : '';
+		const className = collapsed ? 'lfh-collapsed' : '';
+		if ( panel.className !== className ) {
+			panel.className = className;
+		}
 		const html =
 			'<div class="lfh-head">' +
 			'<strong>Link Fixer Harness</strong> <span>load #' + esc( P.load ) + ' · ' + esc( P.scenario ) + ' · ' + esc( P.role ) + '</span>' +
@@ -543,7 +546,11 @@
 
 	function paint() {
 		rows.forEach( ( r ) =>
-			r.anchors.forEach( ( a ) => a.setAttribute( 'data-lfh-state', r.verdict ) )
+			r.anchors.forEach( ( a ) => {
+				if ( a.getAttribute( 'data-lfh-state' ) !== r.verdict ) {
+					a.setAttribute( 'data-lfh-state', r.verdict );
+				}
+			} )
 		);
 	}
 
@@ -591,6 +598,11 @@
 		const button = event.target.closest( 'button' );
 		if ( button && button.dataset.action ) {
 			act( button.dataset.action );
+			return;
+		}
+		// Buttons, not links, so the Link Fixer does not pick them up as page links.
+		if ( button && button.dataset.go ) {
+			location.href = button.dataset.go;
 			return;
 		}
 		if ( button && button.dataset.manual ) {
