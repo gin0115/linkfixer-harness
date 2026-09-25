@@ -45,11 +45,6 @@ class Rest {
 			'age'       => array( 'POST', 'age' ),
 			'settings'  => array( 'POST', 'update_settings' ),
 			'results'   => array( 'GET, POST', 'results' ),
-			'step'      => array( 'POST', 'step' ),
-			'verify'    => array( 'POST', 'verify' ),
-			'run/save'  => array( 'POST', 'run_save' ),
-			'runs'      => array( 'GET', 'runs' ),
-			'run/start' => array( 'POST', 'run_start' ),
 		);
 
 		foreach ( $routes as $route => $config ) {
@@ -59,94 +54,10 @@ class Rest {
 				array(
 					'methods'             => $config[0],
 					'callback'            => array( self::class, $config[1] ),
-					// Starting a run needs an administrator; everything else also accepts the run token.
-					'permission_callback' => 'run/start' === $route
-						? static fn() => current_user_can( 'manage_options' )
-						: array( self::class, 'allowed' ),
+					'permission_callback' => static fn() => current_user_can( 'manage_options' ),
 				)
 			);
 		}
-	}
-
-	/**
-	 * An administrator, or a request carrying the current run token (X-LFH-Token).
-	 *
-	 * The runner sends the token without a nonce, so it keeps working after it logs in as another user.
-	 *
-	 * @param WP_REST_Request $request The request.
-	 *
-	 * @return boolean
-	 */
-	public static function allowed( WP_REST_Request $request ): bool {
-		return current_user_can( 'manage_options' ) || Runner::token_valid( (string) $request->get_header( 'x_lfh_token' ) );
-	}
-
-	/**
-	 * Starts a run.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public static function run_start(): WP_REST_Response {
-		return new WP_REST_Response(
-			array(
-				'token'  => Runner::start(),
-				'suites' => Suites::describe(),
-			)
-		);
-	}
-
-	/**
-	 * Runs a step's setup and returns what the browser needs.
-	 *
-	 * @param WP_REST_Request $request The request, with suite and index.
-	 *
-	 * @return WP_REST_Response|\WP_Error
-	 */
-	public static function step( WP_REST_Request $request ) {
-		$suite = Suites::get( (string) $request->get_param( 'suite' ) );
-		if ( null === $suite ) {
-			return new \WP_Error( 'lfh_unknown_suite', 'Unknown suite.', array( 'status' => 404 ) );
-		}
-		return new WP_REST_Response( Runner::run_step( $suite, absint( $request->get_param( 'index' ) ) ) );
-	}
-
-	/**
-	 * Runs a step's server side checks.
-	 *
-	 * @param WP_REST_Request $request The request, with suite and index.
-	 *
-	 * @return WP_REST_Response|\WP_Error
-	 */
-	public static function verify( WP_REST_Request $request ) {
-		$suite = Suites::get( (string) $request->get_param( 'suite' ) );
-		if ( null === $suite ) {
-			return new \WP_Error( 'lfh_unknown_suite', 'Unknown suite.', array( 'status' => 404 ) );
-		}
-		return new WP_REST_Response( Runner::verify( $suite, absint( $request->get_param( 'index' ) ) ) );
-	}
-
-	/**
-	 * Stores the run so far.
-	 *
-	 * @param WP_REST_Request $request The request, the run as JSON.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public static function run_save( WP_REST_Request $request ): WP_REST_Response {
-		$run = $request->get_json_params();
-		if ( is_array( $run ) ) {
-			Runner::save_run( $run );
-		}
-		return new WP_REST_Response( array( 'saved' => is_array( $run ) ) );
-	}
-
-	/**
-	 * Stored runs.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public static function runs(): WP_REST_Response {
-		return new WP_REST_Response( Runner::runs() );
 	}
 
 	/**
