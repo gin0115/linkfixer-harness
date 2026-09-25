@@ -33,13 +33,15 @@ class Widget {
 			return;
 		}
 
-		$page = Scenario_Mixed_Links::page_data( (int) get_queried_object_id() );
+		$post_id  = (int) get_queried_object_id();
+		$scenario = Scenarios::for_post( $post_id );
+		$page     = null === $scenario ? null : $scenario->page_data( $post_id );
 		if ( null === $page ) {
 			return;
 		}
 
-		$load = (int) get_option( 'lfh_load_count', 0 ) + 1;
-		update_option( 'lfh_load_count', $load, false );
+		$load = (int) get_option( $scenario->load_count_key(), 0 ) + 1;
+		update_option( $scenario->load_count_key(), $load, false );
 
 		// In the head, so fetch is wrapped before the Link Fixer's footer script runs.
 		wp_enqueue_script( 'lfh-watch', LFH_URL . 'assets/watch.js', array(), LFH_VERSION, false );

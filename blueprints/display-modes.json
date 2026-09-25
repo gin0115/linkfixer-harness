@@ -1,6 +1,6 @@
 {
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
-	"landingPage": "/?lfh_go=mixed-links",
+	"landingPage": "/?lfh_go=display-modes",
 	"preferredVersions": {
 		"php": "8.3",
 		"wp": "latest"
@@ -35,7 +35,7 @@
 		},
 		{
 			"step": "runPHP",
-			"code": "<?php require_once '/wordpress/wp-load.php'; \\LinkFixer_Harness\\Scenarios::get( 'mixed-links' )->seed();"
+			"code": "<?php require_once '/wordpress/wp-load.php'; \\LinkFixer_Harness\\Scenarios::get( 'display-modes' )->seed();"
 		}
 	]
 }

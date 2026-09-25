@@ -68,6 +68,7 @@ class Rest {
 	public static function settings(): array {
 		return array(
 			'fixer_option'       => Settings::get_fixer_option(),
+			'link_icon'          => Settings::get_link_icon(),
 			'duration'           => Settings::get_link_check_duration(),
 			'failed_count'       => Settings::get_failed_count(),
 			'valid_codes'        => array_map( 'intval', Settings::get_valid_http_status_codes() ),
@@ -86,11 +87,20 @@ class Rest {
 	 * @return WP_REST_Response
 	 */
 	public static function get_state(): WP_REST_Response {
+		$scenarios = array();
+		foreach ( Scenarios::all() as $slug => $scenario ) {
+			$scenarios[ $slug ] = array(
+				'title'    => $scenario->title(),
+				'summary'  => $scenario->summary(),
+				'registry' => $scenario->registry(),
+			);
+		}
+
 		return new WP_REST_Response(
 			array(
-				'settings' => self::settings(),
-				'registry' => get_option( 'lfh_scenario_mixed_links', null ),
-				'calls'    => Call_Log::since( max( 0, Call_Log::last_id() - 200 ) ),
+				'settings'  => self::settings(),
+				'scenarios' => $scenarios,
+				'calls'     => Call_Log::since( max( 0, Call_Log::last_id() - 200 ) ),
 				'results'  => (array) get_option( self::RESULTS_OPTION, array() ),
 			)
 		);
@@ -108,30 +118,45 @@ class Rest {
 	}
 
 	/**
-	 * Reseeds the scenario.
+	 * Reseeds a scenario.
 	 *
-	 * @return WP_REST_Response
+	 * @param WP_REST_Request $request The request, with scenario (slug, default mixed-links).
+	 *
+	 * @return WP_REST_Response|\WP_Error
 	 */
-	public static function seed(): WP_REST_Response {
-		$registry = Scenario_Mixed_Links::seed();
+	public static function seed( WP_REST_Request $request ) {
+		$scenario = Scenarios::get( (string) ( $request->get_param( 'scenario' ) ?? 'mixed-links' ) );
+		if ( null === $scenario ) {
+			return new \WP_Error( 'lfh_unknown_scenario', 'Unknown scenario.', array( 'status' => 404 ) );
+		}
+
+		$registry = $scenario->seed();
 		return new WP_REST_Response(
 			array(
 				'registry' => $registry,
-				'main_url' => get_permalink( $registry['posts']['main'] ),
+				'main_url' => $scenario->first_url(),
 			)
 		);
 	}
 
 	/**
-	 * Ages every seeded check.
+	 * Ages the seeded checks of one scenario, or of all of them.
 	 *
-	 * @param WP_REST_Request $request The request, with days.
+	 * @param WP_REST_Request $request The request, with days and optionally scenario.
 	 *
 	 * @return WP_REST_Response
 	 */
 	public static function age( WP_REST_Request $request ): WP_REST_Response {
-		$days = (float) ( $request->get_param( 'days' ) ?? 4 );
-		return new WP_REST_Response( array( 'changed' => Scenario_Mixed_Links::age( $days ) ) );
+		$days     = (float) ( $request->get_param( 'days' ) ?? 4 );
+		$slug     = $request->get_param( 'scenario' );
+		$selected = null === $slug ? Scenarios::all() : array_filter( array( Scenarios::get( (string) $slug ) ) );
+
+		$changed = 0;
+		foreach ( $selected as $scenario ) {
+			$changed += $scenario->age( $days );
+		}
+
+		return new WP_REST_Response( array( 'changed' => $changed ) );
 	}
 
 	/**

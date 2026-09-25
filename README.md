@@ -11,7 +11,8 @@ Test harness for the [Internet Archive Wayback Machine Link Fixer](https://githu
 
 | Blueprint | Open |
 |---|---|
-| Mixed links: one post with a link in every state | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/blueprints/mixed-links.json) |
+| Broken links on the page: one post with a link in every state | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/blueprints/mixed-links.json) |
+| Display modes and link icons: five pages, one per setting | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/blueprints/display-modes.json) |
 
 ## URL scripts
 
@@ -57,6 +58,20 @@ Defaults: checked every 3 days, broken after 3 failed checks, mode `replace_link
 | E01 | Link in the excluded post | 404 x3 | 404 | no script, no data, nothing swapped |
 
 The panel's **Age 4 days + reload** moves every seeded check 4 days back, so the next load re-checks everything that is due.
+
+## Display modes scenario
+
+Five pages. Each forces `iawmlf_fixer_option` and `iawmlf_link_icon` for its own page views only (`pre_option_*`), so the saved settings never change and the pages can be open side by side. Each page has its own copy of five links: broken and stays broken, broken but recovers, broken and checked recently, healthy, and a hand-written `web.archive.org/web/...` link.
+
+| Page | Mode | Icon | Expected |
+|---|---|---|---|
+| R | `replace_link` | none | broken links swapped, no icon anywhere |
+| B | `replace_link` | before | swapped links and the hand-written archive link get the icon before |
+| A | `replace_link` | after | as B, icon after |
+| C | `check_only` | before | links checked, nothing swapped, only the hand-written archive link gets the icon |
+| N | `do_nothing` | before | no script, no link data, no icon CSS: nothing checked, swapped or decorated |
+
+The panel measures the icon from each link's computed `::before` / `::after` background image.
 
 ## REST routes
 

@@ -21,7 +21,10 @@ define( 'LFH_URL', plugin_dir_url( __FILE__ ) );
 
 require_once LFH_PATH . 'src/Call_Log.php';
 require_once LFH_PATH . 'src/Script.php';
+require_once LFH_PATH . 'src/Scenario.php';
 require_once LFH_PATH . 'src/Scenario_Mixed_Links.php';
+require_once LFH_PATH . 'src/Scenario_Display_Modes.php';
+require_once LFH_PATH . 'src/Scenarios.php';
 require_once LFH_PATH . 'src/Rest.php';
 require_once LFH_PATH . 'src/Widget.php';
 
@@ -59,7 +62,7 @@ function boot(): void {
 	}
 
 	Call_Log::init();
-	Scenario_Mixed_Links::init();
+	Scenarios::init();
 	Rest::init();
 	Widget::init();
 }

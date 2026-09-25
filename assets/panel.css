@@ -177,8 +177,8 @@ a[data-lfh-state="scroll"] {
 	outline: 2px dashed #8c8f94;
 }
 
-a.iawmlf-broken-link[data-lfh-state]::after {
-	content: "archived";
+/* A span after swapped links, so the link's own ::before and ::after stay free for the plugin's icon. */
+.lfh-tag {
 	margin-left: 6px;
 	padding: 0 4px;
 	border-radius: 2px;

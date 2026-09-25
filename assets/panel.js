@@ -89,6 +89,17 @@
 			}
 		}
 
+		const swapped = inData && hasArchive && broken && S.fixer_option === 'replace_link';
+
+		// Settings::get_link_icon_css() loads with the script and matches any archive link, swapped or hand written.
+		const side =
+			S.link_icon === 'ia_logo_before'
+				? 'before'
+				: S.link_icon === 'ia_logo_after'
+				? 'after'
+				: 'none';
+		const archiveHref = swapped || ( link.static && /archive\.org\/web\//.test( link.url ) );
+
 		return {
 			script,
 			inData,
@@ -99,8 +110,9 @@
 			result,
 			broken,
 			codesAfter,
-			swapped: inData && hasArchive && broken && S.fixer_option === 'replace_link',
+			swapped,
 			attributes: inData && hasArchive,
+			icon: script && archiveHref ? side : 'none',
 		};
 	}
 
@@ -135,9 +147,23 @@
 		return { script, ids };
 	}
 
+	// The plugin's link icon is a background image on ::before or ::after.
+	const iconOn = ( anchor, pseudo ) =>
+		/archive-icon/.test(
+			window.getComputedStyle( anchor, pseudo ).backgroundImage || ''
+		);
+
 	function observe( row ) {
 		const data = pluginData();
+		let icon = 'none';
+		if ( row.anchors.some( ( a ) => iconOn( a, '::before' ) ) ) {
+			icon = 'before';
+		} else if ( row.anchors.some( ( a ) => iconOn( a, '::after' ) ) ) {
+			icon = 'after';
+		}
+
 		return {
+			icon,
 			script: data.script,
 			inData: !! row.link.db && data.ids.has( row.link.db.id ),
 			fetches: LOG.fetches.filter(
@@ -262,6 +288,9 @@
 					yn( a.attributes )
 			);
 		}
+		if ( e.icon !== a.icon ) {
+			p.push( 'link icon: expected ' + e.icon + ', got ' + a.icon );
+		}
 
 		row.problems = p;
 		row.verdict = p.length ? 'fail' : 'pass';
@@ -341,6 +370,7 @@
 					in_data: r.act.inData,
 					swapped: r.act.swapped,
 					attributes: r.act.attributes,
+					icon: r.act.icon,
 					fetches: r.act.fetches.map( ( f ) => ( {
 						status: f.status,
 						updated: f.json && f.json.updated,
@@ -398,9 +428,14 @@
 
 	const icon = { pass: '✓', fail: '✗', waiting: '…', scroll: '↓', todo: '○', 'n/a': '-' };
 
-	function describeExpected( e ) {
+	const iconText = ( side ) => ( side === 'none' ? '' : ', icon ' + side );
+
+	function describeExpected( e, link ) {
 		if ( ! e.script ) {
 			return 'no Link Fixer script on this page';
+		}
+		if ( link.static ) {
+			return 'hand-written, untouched' + iconText( e.icon );
 		}
 		if ( ! e.inData ) {
 			return 'not in link data, untouched';
@@ -411,7 +446,7 @@
 		let text = e.wantsCheck
 			? 'check → ' + ( e.status === 500 ? '500, nothing recorded' : e.result === null ? 'not re-checked by server' : e.result )
 			: 'no check';
-		text += ', ' + ( e.swapped ? 'swapped' : 'not swapped' );
+		text += ', ' + ( e.swapped ? 'swapped' : 'not swapped' ) + iconText( e.icon );
 		return text;
 	}
 
@@ -425,7 +460,7 @@
 		text += f
 			? ', check → ' + ( f.status === null ? 'pending' : f.status ) + ( f.json && typeof f.json.valid === 'boolean' ? ( f.json.valid ? ' valid' : ' broken' ) : '' )
 			: ', no check';
-		text += ', ' + ( a.swapped ? 'swapped' : 'not swapped' );
+		text += ', ' + ( a.swapped ? 'swapped' : 'not swapped' ) + iconText( a.icon );
 		return text;
 	}
 
@@ -457,7 +492,7 @@
 					'<tr class="lfh-row lfh-' + r.verdict + '" data-row="' + i + '">' +
 					'<td class="lfh-state">' + icon[ r.verdict ] + '</td>' +
 					'<td><strong>' + esc( r.link.id ) + '</strong> ' + esc( r.link.label ) + '</td>' +
-					'<td>' + esc( describeExpected( r.exp ) ) + '</td>' +
+					'<td>' + esc( describeExpected( r.exp, r.link ) ) + '</td>' +
 					'<td>' + esc( describeActual( r ) ) + '</td>' +
 					'</tr>';
 
@@ -494,21 +529,24 @@
 		}
 		const html =
 			'<div class="lfh-head">' +
-			'<strong>Link Fixer Harness</strong> <span>load #' + esc( P.load ) + ' · ' + esc( P.scenario ) + ' · ' + esc( P.role ) + '</span>' +
+			'<strong>Link Fixer Harness</strong> <span>' + esc( P.scenario_title ) + ' · load #' + esc( P.load ) + '</span>' +
 			'<button type="button" data-action="toggle">' + ( collapsed ? 'Open' : 'Hide' ) + '</button>' +
 			'</div>' +
 			( collapsed
 				? ''
 				: '<div class="lfh-body">' +
-				  '<p class="lfh-settings">Mode <b>' + esc( S.fixer_option ) + '</b> · checked every <b>' + esc( S.duration ) + '</b> days · broken after <b>' + esc( S.failed_count ) + '</b> failures · fakes <b>' + esc( S.client_mode ) + '</b> · Link Fixer ' + esc( S.link_fixer_version ) + '</p>' +
+				  '<p class="lfh-settings">Mode <b>' + esc( S.fixer_option ) + '</b> · icon <b>' + esc( S.link_icon ) + '</b> · checked every <b>' + esc( S.duration ) + '</b> days · broken after <b>' + esc( S.failed_count ) + '</b> failures · fakes <b>' + esc( S.client_mode ) + '</b> · Link Fixer ' + esc( S.link_fixer_version ) + '</p>' +
+				  ( forced ? '<p class="lfh-status">This page forces ' + esc( forced ) + ' for its own page views only.</p>' : '' ) +
 				  '<p class="lfh-posts">' + posts + '</p>' +
 				  '<p class="lfh-actions">' +
 				  '<button type="button" data-action="age">Age 4 days + reload</button>' +
 				  '<button type="button" data-action="reload">Reload</button>' +
 				  '<button type="button" data-action="seed">Reseed</button>' +
-				  '<select data-action="mode">' +
-				  [ 'replace_link', 'check_only', 'do_nothing' ].map( ( m ) => '<option value="' + m + '"' + ( m === S.fixer_option ? ' selected' : '' ) + '>' + m + '</option>' ).join( '' ) +
-				  '</select>' +
+				  ( forced
+					? ''
+					: '<select data-action="mode">' +
+					  [ 'replace_link', 'check_only', 'do_nothing' ].map( ( m ) => '<option value="' + m + '"' + ( m === S.fixer_option ? ' selected' : '' ) + '>' + m + '</option>' ).join( '' ) +
+					  '</select>' ) +
 				  '<button type="button" data-action="copy">Copy report</button>' +
 				  '<button type="button" data-action="save">Save results</button>' +
 				  '</p>' +
@@ -527,11 +565,27 @@
 
 	let lastHtml = '';
 
+	// The options this page forces, as "iawmlf_fixer_option = check_only, ...".
+	const forced = Object.keys( P.overrides || {} )
+		.map( ( option ) => option + ' = ' + P.overrides[ option ] )
+		.join( ', ' );
+
 	function paint() {
 		rows.forEach( ( r ) =>
 			r.anchors.forEach( ( a ) => {
 				if ( a.getAttribute( 'data-lfh-state' ) !== r.verdict ) {
 					a.setAttribute( 'data-lfh-state', r.verdict );
+				}
+
+				// A tag after swapped links. Not a pseudo element, those are where the plugin's link icon goes.
+				const tagged =
+					a.nextElementSibling &&
+					a.nextElementSibling.classList.contains( 'lfh-tag' );
+				if ( r.act && r.act.swapped && ! tagged ) {
+					const tag = document.createElement( 'span' );
+					tag.className = 'lfh-tag';
+					tag.textContent = 'archived';
+					a.insertAdjacentElement( 'afterend', tag );
 				}
 			} )
 		);
@@ -550,14 +604,14 @@
 			} else if ( action === 'age' ) {
 				status = 'Ageing checks...';
 				render();
-				await api( 'age', 'POST', { days: 4 } );
+				await api( 'age', 'POST', { days: 4, scenario: P.scenario } );
 				location.reload();
 			} else if ( action === 'reload' ) {
 				location.reload();
 			} else if ( action === 'seed' ) {
 				status = 'Reseeding...';
 				render();
-				const result = await api( 'seed', 'POST' );
+				const result = await api( 'seed', 'POST', { scenario: P.scenario } );
 				location.href = result.main_url;
 			} else if ( action === 'mode' ) {
 				await api( 'settings', 'POST', { fixer_option: value } );
