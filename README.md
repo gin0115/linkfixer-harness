@@ -6,6 +6,8 @@ WordPress Playground test sites for the [Internet Archive Wayback Machine Link F
 
 | Site | Open | Checklist |
 |---|---|---|
+| Setup wizard (production): fresh install, three step wizard | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/sites/wizard-production/blueprint.json) | [CHECKLIST.md](sites/wizard-production/CHECKLIST.md) |
+| Setup wizard (staging): fresh install on a staging site, two step wizard | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/sites/wizard-staging/blueprint.json) | [CHECKLIST.md](sites/wizard-staging/CHECKLIST.md) |
 | Links on the page: one post with a link in every state, over three visits | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/sites/links-on-page/blueprint.json) | [CHECKLIST.md](sites/links-on-page/CHECKLIST.md) |
 | Display modes and link icons: five posts, one per setting | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/sites/display-modes/blueprint.json) | [CHECKLIST.md](sites/display-modes/CHECKLIST.md) |
 

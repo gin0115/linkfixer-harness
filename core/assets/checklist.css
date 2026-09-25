@@ -1,0 +1,131 @@
+/* Link Fixer Harness checklist panel. Above everything, including the setup wizard's full screen overlay. */
+
+#lfh-checklist {
+	position: fixed;
+	left: 12px;
+	bottom: 12px;
+	z-index: 2147483000;
+	width: min( 440px, calc( 100vw - 24px ) );
+	max-height: 75vh;
+	overflow: auto;
+	background: #fff;
+	color: #1e1e1e;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	box-shadow: 0 6px 24px rgba( 0, 0, 0, 0.2 );
+	font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	text-align: left;
+}
+
+#lfh-checklist.lfh-cl-collapsed {
+	width: auto;
+}
+
+#lfh-checklist * {
+	box-sizing: border-box;
+	font: inherit;
+	color: inherit;
+	letter-spacing: normal;
+	text-transform: none;
+}
+
+#lfh-checklist .lfh-cl-head {
+	position: sticky;
+	top: 0;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding: 8px 10px;
+	background: #1d2327;
+	color: #fff;
+}
+
+#lfh-checklist .lfh-cl-head span {
+	flex: 1;
+	opacity: 0.8;
+}
+
+#lfh-checklist .lfh-cl-body {
+	padding: 8px 10px 10px;
+}
+
+#lfh-checklist p,
+#lfh-checklist ol {
+	margin: 0 0 6px;
+	padding: 0;
+}
+
+#lfh-checklist ol {
+	list-style: none;
+}
+
+#lfh-checklist li {
+	display: flex;
+	gap: 8px;
+	padding: 6px 4px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+#lfh-checklist li p {
+	margin: 0 0 2px;
+}
+
+#lfh-checklist .lfh-cl-mark {
+	flex: 0 0 1.2em;
+	font-weight: 700;
+	text-align: center;
+}
+
+#lfh-checklist .lfh-cl-pass .lfh-cl-mark {
+	color: #00a32a;
+}
+
+#lfh-checklist .lfh-cl-pass {
+	opacity: 0.75;
+}
+
+#lfh-checklist .lfh-cl-fail {
+	background: #fcf0f1;
+}
+
+#lfh-checklist .lfh-cl-fail .lfh-cl-mark,
+#lfh-checklist .lfh-cl-problem {
+	color: #d63638;
+}
+
+#lfh-checklist .lfh-cl-next {
+	background: #f0f6fc;
+}
+
+#lfh-checklist .lfh-cl-next .lfh-cl-mark {
+	color: #2271b1;
+}
+
+#lfh-checklist .lfh-cl-todo .lfh-cl-mark {
+	color: #8c8f94;
+}
+
+#lfh-checklist a {
+	color: #2271b1;
+	text-decoration: underline;
+}
+
+#lfh-checklist button {
+	margin: 0 4px 0 0;
+	padding: 2px 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 3px;
+	background: #f6f7f7;
+	cursor: pointer;
+}
+
+#lfh-checklist .lfh-cl-head button {
+	background: transparent;
+	color: #fff;
+	border-color: rgba( 255, 255, 255, 0.5 );
+}
+
+#lfh-checklist .lfh-cl-status {
+	padding: 4px 6px;
+	background: #f0f6fc;
+}
