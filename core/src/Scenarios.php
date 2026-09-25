@@ -33,15 +33,17 @@ class Scenarios {
 	}
 
 	/**
-	 * Every scenario, by slug.
+	 * Every scenario, by slug. Each site plugin adds its own through the lfh_scenarios filter.
 	 *
 	 * @return array<string, Scenario>
 	 */
 	public static function all(): array {
 		if ( null === self::$all ) {
 			self::$all = array();
-			foreach ( array( new Scenario_Mixed_Links(), new Scenario_Display_Modes() ) as $scenario ) {
-				self::$all[ $scenario->slug() ] = $scenario;
+			foreach ( (array) apply_filters( 'lfh_scenarios', array() ) as $scenario ) {
+				if ( $scenario instanceof Scenario ) {
+					self::$all[ $scenario->slug() ] = $scenario;
+				}
 			}
 		}
 		return self::$all;
