@@ -43,7 +43,7 @@ class Scenario_Mixed_Links {
 		return array(
 			'main'     => array(
 				'title' => 'Harness: every link state',
-				'intro' => 'Every link below has a scripted Archive.org response and a seeded check history. The harness panel shows what should happen to each one on this page load, and what actually did.',
+				'intro' => 'Every link in this post has a scripted Archive.org response and a seeded check history. They are spread through the text, so scroll down slowly: each one is only checked once it comes into view. The harness panel shows what should happen to each link on this load, and what actually did.',
 			),
 			'other'    => array(
 				'title' => 'Harness: same link in another post',
@@ -267,35 +267,90 @@ class Scenario_Mixed_Links {
 	 * @return string
 	 */
 	private static function content( string $role, string $intro ): string {
-		$above = '';
-		$below = '';
+		$total = 30;
+		$defs  = array_values(
+			array_filter(
+				self::links(),
+				static fn( $def ) => in_array( $role, $def['posts'], true )
+			)
+		);
 
-		foreach ( self::links() as $def ) {
-			if ( ! in_array( $role, $def['posts'], true ) ) {
-				continue;
-			}
+		// Spread the links through the text at uneven gaps, so most are only checked once scrolled into view.
+		$jitter = array( -1, 0, 1, 0, -1, 1, 0 );
+		$placed = array_fill( 0, $total, array() );
+		$count  = count( $defs );
+		foreach ( $defs as $index => $def ) {
+			$slot = $def['below_fold']
+				? $total - 1
+				: (int) round( ( $index + 1 ) * ( $total - 4 ) / ( $count + 1 ) ) + $jitter[ $index % count( $jitter ) ];
 
-			$anchor = sprintf(
-				'<a href="%1$s" data-lfh-id="%2$s">%2$s: %3$s</a>',
+			$placed[ max( 0, min( $total - 2, $slot ) ) + ( $def['below_fold'] ? 1 : 0 ) ][] = sprintf(
+				'<a href="%1$s" data-lfh-id="%2$s" title="%4$s">%2$s: %3$s</a>',
 				esc_url( $def['url'] ),
 				esc_attr( $def['id'] ),
-				esc_html( $def['label'] )
+				esc_html( $def['label'] ),
+				esc_attr( 'Expected: ' . self::expect_for( $def, $role ) )
 			);
-
-			if ( $def['below_fold'] ) {
-				$below .= '<p>' . $anchor . '</p>';
-			} else {
-				$above .= '<li>' . $anchor . '</li>';
-			}
 		}
 
-		$content = '<p>' . esc_html( $intro ) . '</p><ul>' . $above . '</ul>';
+		$content = '<p><strong>' . esc_html( $intro ) . '</strong></p>';
+		for ( $i = 0; $i < $total; $i++ ) {
+			$words = explode( ' ', self::lorem( $i ) );
 
-		if ( '' !== $below ) {
-			$content .= '<p>Scroll down for the below the fold link.</p><div style="height:160vh"></div>' . $below;
+			// Drop each link into the middle of the paragraph.
+			if ( ! empty( $placed[ $i ] ) ) {
+				$middle = (int) floor( count( $words ) / 2 );
+				array_splice( $words, $middle, 0, array( implode( ' and ', $placed[ $i ] ) ) );
+			}
+
+			$content .= '<p>' . implode( ' ', $words ) . '</p>';
 		}
 
 		return $content;
+	}
+
+	/**
+	 * A paragraph of lorem ipsum, the same every time for the same number.
+	 *
+	 * @param integer $paragraph The paragraph number.
+	 *
+	 * @return string
+	 */
+	private static function lorem( int $paragraph ): string {
+		$words = array( 'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit', 'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore', 'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud', 'exercitation', 'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo', 'consequat', 'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate', 'velit', 'esse', 'cillum', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint', 'occaecat', 'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia', 'deserunt', 'mollit', 'anim', 'id', 'est', 'laborum' );
+		$count = count( $words );
+
+		$sentences = array();
+		$position  = $paragraph * 7;
+		for ( $s = 0; $s < 4 + ( $paragraph % 3 ); $s++ ) {
+			$length   = 8 + ( ( $paragraph + $s ) % 7 );
+			$sentence = array();
+			for ( $w = 0; $w < $length; $w++ ) {
+				$sentence[] = $words[ ( $position + $w * 3 + $s ) % $count ];
+			}
+			$position   += $length;
+			$sentences[] = ucfirst( implode( ' ', $sentence ) ) . '.';
+		}
+
+		return implode( ' ', $sentences );
+	}
+
+	/**
+	 * What should happen to a link in a given post, for humans.
+	 *
+	 * @param array<string, mixed> $def  The link definition.
+	 * @param string               $role The post role.
+	 *
+	 * @return string
+	 */
+	public static function expect_for( array $def, string $role ): string {
+		if ( 'post' === self::exclusion_for( $def, $role ) ) {
+			return 'This whole post is excluded: no link data, no checker script, nothing happens to this link.';
+		}
+		if ( 'post_filter' === $def['exclusion'] && 'post_filter' !== self::exclusion_for( $def, $role ) ) {
+			return 'Not excluded in this post: checked on load, the checker returns 404, it stays broken and is swapped.';
+		}
+		return $def['expect'];
 	}
 
 	/**
@@ -451,7 +506,7 @@ class Scenario_Mixed_Links {
 				'id'         => $def['id'],
 				'label'      => $def['label'],
 				'url'        => $def['url'],
-				'expect'     => $def['expect'],
+				'expect'     => self::expect_for( $def, $role ),
 				'exclusion'  => self::exclusion_for( $def, $role ),
 				'below_fold' => $def['below_fold'],
 				'script'     => Script::parse( $def['url'] ),
