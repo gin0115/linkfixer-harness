@@ -58,6 +58,15 @@
 					detail: window.location.pathname,
 				};
 			}
+			case 'param': {
+				// A query parameter's value; '' also matches a missing parameter (list forms send empty ones).
+				const value = new URLSearchParams( window.location.search ).get( c.name ) || '';
+				return {
+					say: c.say || ( c.is === '' ? c.name + ' is not set' : c.name + ' is ' + c.is ),
+					pass: value === String( c.is ),
+					detail: c.name + '=' + value,
+				};
+			}
 			case 'text':
 				return {
 					say: c.say || ( c.has !== undefined ? '"' + c.has + '" is shown' : '"' + c.lacks + '" is not shown' ),

@@ -31,14 +31,13 @@ add_filter(
 		$toggle    = '#iawmlf_toggle_exclusion';
 		$rows      = '#the-list tr';
 
-		$url     = static fn( $has ) => array(
-			'type' => 'url',
-			'has'  => $has,
+		// The list form is a GET form that always sends s, iawmlf_status and friends, even empty.
+		$param   = static fn( $name, $is ) => array(
+			'type' => 'param',
+			'name' => $name,
+			'is'   => $is,
 		);
-		$lacks   = static fn( $lacks ) => array(
-			'type'  => 'url',
-			'lacks' => $lacks,
-		);
+		$page    = $param( 'page', 'iawmlf-links' );
 		$text    = static fn( $selector, $has, $say = '' ) => array_filter(
 			array(
 				'type'     => 'text',
@@ -71,14 +70,14 @@ add_filter(
 					'do'     => 'Open Link Fixer, Links.',
 					'expect' => 'A table of the twelve seeded links, A1 to A12.',
 					'link'   => 'admin:admin.php?page=iawmlf-links',
-					'when'   => array( $url( 'page=iawmlf-links' ), $lacks( 'iawmlf_link_id' ), $lacks( 'iawmlf_status' ), $lacks( '&s=' ), $lacks( 'iawmlf_completed_action' ) ),
+					'when'   => array( $page, $param( 'iawmlf_link_id', '' ), $param( 'iawmlf_status', '' ), $param( 's', '' ) ),
 					'checks' => array( $count( 12, 'The table has 12 rows' ) ),
 				),
 				array(
 					'id'     => 'filter-broken',
 					'do'     => 'Choose "Show broken links" and press Filter.',
 					'expect' => 'Only the five broken links: A1, A3, A6, A7 and A8.',
-					'when'   => array( $url( 'iawmlf_status=1' ), $lacks( '&s=' ) ),
+					'when'   => array( $page, $param( 'iawmlf_status', '1' ), $param( 's', '' ) ),
 					'checks' => array(
 						$count( 5, 'The table has 5 rows' ),
 						$text( '#the-list', 'a1-broken-archive', 'A1 is listed' ),
@@ -94,7 +93,7 @@ add_filter(
 					'id'     => 'search',
 					'do'     => 'Set the filter back to "All" and search for a3.',
 					'expect' => 'One row: A3.',
-					'when'   => array( $url( 's=a3' ) ),
+					'when'   => array( $page, $param( 's', 'a3' ), $param( 'iawmlf_status', '' ) ),
 					'checks' => array(
 						$count( 1, 'The table has 1 row' ),
 						$text( '#the-list', 'a3-no-archive', 'It is A3' ),
@@ -104,7 +103,7 @@ add_filter(
 					'id'     => 'search-nothing',
 					'do'     => 'Search for nothing-matches.',
 					'expect' => 'The table says "No links to display."',
-					'when'   => array( $url( 's=nothing-matches' ) ),
+					'when'   => array( $page, $param( 's', 'nothing-matches' ) ),
 					'checks' => array( $text( '#the-list', 'No links to display', 'The table says "No links to display."' ) ),
 				),
 				array(
