@@ -35,7 +35,8 @@ class Checks {
 	 *
 	 * option   - name, is (null means not set).
 	 * action   - hook, status (one or a list), count or min, optional args and within (seconds from now).
-	 * link_row - url, field (broken, excluded, archived, process, checks, last_code, redirect, message), is.
+	 * link_row - url, field (broken, excluded, archived, archived_href, process, checks, last_code, redirect, message),
+	 *            and is (equals) or has (contains).
 	 * calls    - method, url_has, min.
 	 *
 	 * @param array<string, mixed> $check The check.
@@ -82,9 +83,13 @@ class Checks {
 			case 'link_row':
 				$link   = ( new Link_Repository() )->find_by_url( (string) $check['url'] );
 				$actual = null === $link ? null : self::link_field( $link, (string) $check['field'] );
+				// "has" means the field contains that text, "is" means it equals the value.
+				$pass = null !== $link && ( isset( $check['has'] )
+					? false !== strpos( (string) $actual, (string) $check['has'] )
+					: self::same( $actual, $check['is'] ) );
 				return array(
-					'say'    => $check['say'] ?? sprintf( 'Link %1$s: %2$s is %3$s', $check['url'], $check['field'], wp_json_encode( $check['is'] ) ),
-					'pass'   => null !== $link && self::same( $actual, $check['is'] ),
+					'say'    => $check['say'] ?? sprintf( 'Link %1$s: %2$s %3$s %4$s', $check['url'], $check['field'], isset( $check['has'] ) ? 'contains' : 'is', wp_json_encode( $check['has'] ?? $check['is'] ) ),
+					'pass'   => $pass,
 					'detail' => null === $link ? 'link row not found' : 'found ' . wp_json_encode( $actual ),
 				);
 
@@ -163,6 +168,8 @@ class Checks {
 				return $link->is_excluded();
 			case 'archived':
 				return '' !== (string) $link->get_archived_href();
+			case 'archived_href':
+				return (string) $link->get_archived_href();
 			case 'process':
 				return $link->get_archive_process();
 			case 'checks':

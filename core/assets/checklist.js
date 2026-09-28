@@ -84,6 +84,18 @@
 					pass: !! window.iawmlfArchivedLinks === c.loaded,
 					detail: 'loaded: ' + !! window.iawmlfArchivedLinks,
 				};
+			case 'notice': {
+				// Any admin notice on the page, not just the first.
+				const notices = Array.from( document.querySelectorAll( '.notice, .updated, .error' ) ).map( ( n ) =>
+					n.textContent.replace( /\s+/g, ' ' ).trim()
+				);
+				const found = notices.find( ( n ) => n.includes( c.has !== undefined ? c.has : c.lacks ) );
+				return {
+					say: c.say || ( c.has !== undefined ? 'A notice says "' + c.has + '"' : 'No notice says "' + c.lacks + '"' ),
+					pass: c.has !== undefined ? !! found : ! found,
+					detail: found ? '"' + found.slice( 0, 200 ) + '"' : notices.length + ' notice(s), none matching',
+				};
+			}
 		}
 
 		return { say: 'Unknown check ' + c.type, pass: false, detail: '' };

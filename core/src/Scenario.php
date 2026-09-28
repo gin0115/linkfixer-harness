@@ -73,6 +73,8 @@ abstract class Scenario {
 	 * static     - a hand written link: no database row, not in the post's link data.
 	 * pattern    - for exclusion "global", the rule added to the settings exclusion list.
 	 * filter_in  - for exclusion "post_filter", the post roles the filter excludes it in.
+	 * process    - archive process state: done (default), new or pending.
+	 * archived   - a specific archived URL to start with, instead of the fake client's one.
 	 *
 	 * @param array<string, mixed> $args The values.
 	 *
@@ -94,6 +96,8 @@ abstract class Scenario {
 				'static'     => false,
 				'pattern'    => '',
 				'filter_in'  => array(),
+				'process'    => 'done',
+				'archived'   => '',
 			),
 			$args
 		);
@@ -288,7 +292,9 @@ abstract class Scenario {
 
 			$link = new Link( $def['url'] );
 
-			if ( $def['archive'] ) {
+			if ( '' !== $def['archived'] ) {
+				$link->set_archived_href( $def['archived'] );
+			} elseif ( $def['archive'] ) {
 				$link->set_archived_href( Fake_Snapshot_Client::archive_url( $def['url'] ) );
 			}
 
@@ -310,7 +316,13 @@ abstract class Scenario {
 				$patterns[] = $def['pattern'];
 			}
 
-			$link->set_done();
+			if ( 'new' === $def['process'] ) {
+				$link->set_new();
+			} elseif ( 'pending' === $def['process'] ) {
+				$link->set_pending();
+			} else {
+				$link->set_done();
+			}
 			$link                   = $repository->upsert( $link );
 			$link_ids[ $def['id'] ] = (int) $link->get_id();
 		}
