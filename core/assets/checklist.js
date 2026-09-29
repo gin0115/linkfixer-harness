@@ -73,6 +73,20 @@
 					pass: el !== null && ( c.has !== undefined ? text.includes( c.has ) : ! text.includes( c.lacks ) ),
 					detail: el ? '"' + text.slice( 0, 160 ) + '"' : 'not found: ' + c.selector,
 				};
+			case 'value':
+				return {
+					say: c.say || c.selector + ' shows "' + c.is + '"',
+					pass: el !== null && String( el.value ) === String( c.is ),
+					detail: el ? 'value "' + el.value + '"' : 'not found',
+				};
+			case 'visible': {
+				const shown = el !== null && el.getClientRects().length > 0 && window.getComputedStyle( el ).visibility !== 'hidden';
+				return {
+					say: c.say || c.selector + ( c.is ? ' is showing' : ' is hidden' ),
+					pass: shown === c.is,
+					detail: el ? 'showing: ' + shown : 'not found',
+				};
+			}
 			case 'exists':
 				return { say: c.say || c.selector + ' is on the page', pass: el !== null, detail: el ? 'found' : 'not found' };
 			case 'missing':
@@ -241,6 +255,41 @@
 
 	window.LFH_CHECKLIST_API = { report, state, judge };
 
+	// Things that change without a page load (a setting shown or hidden as a box is ticked) are
+	// checked again after any change to a field, once things settle. One check at a time.
+	let judging = false;
+	let again = false;
+	let timer = null;
+
+	async function judgeSoon() {
+		if ( judging ) {
+			again = true;
+			return;
+		}
+		judging = true;
+		try {
+			await judge();
+		} catch ( e ) {
+			status = 'Could not check this page: ' + e.message;
+			render();
+		}
+		judging = false;
+		if ( again ) {
+			again = false;
+			judgeSoon();
+		}
+	}
+
+	[ 'change', 'input' ].forEach( ( type ) =>
+		document.addEventListener( type, ( event ) => {
+			if ( panel.contains( event.target ) ) {
+				return;
+			}
+			window.clearTimeout( timer );
+			timer = window.setTimeout( judgeSoon, 500 );
+		} )
+	);
+
 	render();
 
 	// Judge once the page has finished loading.
@@ -249,11 +298,6 @@
 			await sleep( 200 );
 		}
 		await sleep( 700 );
-		try {
-			await judge();
-		} catch ( e ) {
-			status = 'Could not check this page: ' + e.message;
-			render();
-		}
+		judgeSoon();
 	} )();
 } )();

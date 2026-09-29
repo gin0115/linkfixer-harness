@@ -33,7 +33,7 @@ class Checks {
 	/**
 	 * Runs one server side check.
 	 *
-	 * option   - name, is (null means not set).
+	 * option   - name, and is (equals, null means not set) or has (a list or text contains it).
 	 * action   - hook, status (one or a list), count or min, optional args and within (seconds from now).
 	 * link_row - url, field (broken, excluded, archived, archived_href, process, checks, last_code, redirect, message),
 	 *            and is (equals) or has (contains).
@@ -66,9 +66,17 @@ class Checks {
 		switch ( $check['type'] ) {
 			case 'option':
 				$actual = get_option( $check['name'], null );
+				// "has": a list contains the value, or text contains it. "is": equals.
+				if ( isset( $check['has'] ) ) {
+					$pass = is_array( $actual )
+						? in_array( (string) $check['has'], array_map( 'strval', $actual ), true )
+						: false !== strpos( (string) $actual, (string) $check['has'] );
+				} else {
+					$pass = self::same( $actual, $check['is'] );
+				}
 				return array(
-					'say'    => $check['say'] ?? 'Setting ' . $check['name'] . ' is ' . wp_json_encode( $check['is'] ),
-					'pass'   => self::same( $actual, $check['is'] ),
+					'say'    => $check['say'] ?? 'Setting ' . $check['name'] . ( isset( $check['has'] ) ? ' contains ' . wp_json_encode( $check['has'] ) : ' is ' . wp_json_encode( $check['is'] ) ),
+					'pass'   => $pass,
 					'detail' => 'found ' . wp_json_encode( $actual ),
 				);
 

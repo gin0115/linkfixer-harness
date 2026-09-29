@@ -25,9 +25,10 @@ defined( 'ABSPATH' ) || exit;
  *   when   - checks that say this is the page and moment the item is about; all must pass.
  *   checks - what must be true then; all must pass.
  *
- * Checks in "when" and "checks" run in the browser (url, param, text, notice, exists, missing, checked, count, script)
- * or on the server (option, action, link_row, calls, see Checks). An item is only judged on a page
- * where every "when" check passes; once passed it stays passed.
+ * Checks in "when" and "checks" run in the browser (url, param, text, notice, value, visible, exists, missing,
+ * checked, count, script) or on the server (option, action, link_row, calls, see Checks). An item is only
+ * judged on a page where every "when" check passes; once passed it stays passed. Items are judged when a
+ * page loads and again after any change to a field on the page.
  */
 class Checklist {
 
