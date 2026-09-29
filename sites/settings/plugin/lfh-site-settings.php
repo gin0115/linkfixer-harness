@@ -35,8 +35,9 @@ add_filter(
 			'name' => $name,
 			'is'   => $is,
 		);
+		// WordPress strips settings-updated from the address after a save (wp_admin_canonical_url), so
+		// "after saving" items are recognised by what is now saved, not by the address.
 		$page    = $param( 'page', 'iawmlf_settings' );
-		$saved   = $param( 'settings-updated', 'true' );
 		$option  = static fn( $name, $is, $say = '' ) => array_filter(
 			array(
 				'type' => 'option',
@@ -85,7 +86,7 @@ add_filter(
 					'do'     => 'Open Link Fixer, Advanced Settings.',
 					'expect' => 'A notice says you are in unauthenticated mode (4000 new snapshots a day). Both Archive.org key fields are empty.',
 					'link'   => 'admin:admin.php?page=iawmlf_settings',
-					'when'   => array( $page, $param( 'settings-updated', '' ), $option( 'iawmlf_archive_api_access', null ) ),
+					'when'   => array( $page, $option( 'iawmlf_archive_api_access', null ) ),
 					'checks' => array(
 						$notice( 'unauthenticated mode', 'The "unauthenticated mode" notice is shown' ),
 						$value( '#iawmlf_archive_api_access', '', 'The access key field is empty' ),
@@ -95,10 +96,9 @@ add_filter(
 				array(
 					'id'     => 'wrong-keys',
 					'do'     => 'Type wrong into both key fields and press Save Changes.',
-					'expect' => '"Settings saved." The keys are now shown as ****************, the key fields say "The Archive.org API keys are invalid", and a notice says your credentials are invalid.',
-					'when'   => array( $page, $saved, $option( 'iawmlf_archive_api_access', 'wrong' ) ),
+					'expect' => 'The keys are now shown as ****************, the key fields say "The Archive.org API keys are invalid", and a notice says your credentials are invalid.',
+					'when'   => array( $page, $option( 'iawmlf_archive_api_access', 'wrong' ) ),
 					'checks' => array(
-						$notice( 'Settings saved', '"Settings saved."' ),
 						$value( '#iawmlf_archive_api_access', $mask, 'The access key is shown masked' ),
 						$value( '#iawmlf_archive_api_secret', $mask, 'The secret key is shown masked' ),
 						$visible( '#invalid_api_creds', true, 'The key fields say the keys are invalid' ),
@@ -109,8 +109,8 @@ add_filter(
 				array(
 					'id'     => 'right-keys',
 					'do'     => 'Type valid-access and valid-secret into the key fields and press Save Changes.',
-					'expect' => '"Settings saved." The keys are masked, and there is no "invalid" or "unauthenticated mode" message any more.',
-					'when'   => array( $page, $saved, $option( 'iawmlf_archive_api_access', 'valid-access' ) ),
+					'expect' => 'The keys are masked, and there is no "invalid" or "unauthenticated mode" message any more.',
+					'when'   => array( $page, $option( 'iawmlf_archive_api_access', 'valid-access' ) ),
 					'checks' => array(
 						$value( '#iawmlf_archive_api_access', $mask, 'The access key is shown masked' ),
 						$no( 'unauthenticated mode', 'No "unauthenticated mode" notice' ),
@@ -182,8 +182,8 @@ add_filter(
 				array(
 					'id'     => 'check-values',
 					'do'     => 'Set the link check frequency to 7 days and the failures before broken to 5, and press Save Changes.',
-					'expect' => '"Settings saved." The fields show 7 and 5.',
-					'when'   => array( $page, $saved, $option( 'iawmlf_link_check_duration_in_days', '7' ) ),
+					'expect' => 'After the page reloads the fields show 7 and 5.',
+					'when'   => array( $page, $option( 'iawmlf_link_check_duration_in_days', '7' ) ),
 					'checks' => array(
 						$value( '#iawmlf_link_check_duration_in_days', '7', 'The check frequency shows 7' ),
 						$value( '#iawmlf_failed_count', '5', 'The failures before broken shows 5' ),
@@ -193,10 +193,9 @@ add_filter(
 				array(
 					'id'     => 'exclusion-rule',
 					'do'     => 'Type *example.org/private* into the link exclusion box, press Add, then press Save Changes.',
-					'expect' => '"Settings saved." The rule is listed under link exclusions.',
+					'expect' => 'After the page reloads the rule is listed under link exclusions.',
 					'when'   => array(
 						$page,
-						$saved,
 						array(
 							'type' => 'option',
 							'name' => 'iawmlf_link_exclusions',
@@ -214,8 +213,8 @@ add_filter(
 				array(
 					'id'     => 'fixer-off',
 					'do'     => 'Untick "Enable Link Fixer" and press Save Changes.',
-					'expect' => '"Settings saved." It stays unticked and the Link Fixer settings stay hidden after the page reloads.',
-					'when'   => array( $page, $saved, $option( 'iawmlf_process_links', false ) ),
+					'expect' => 'It stays unticked and the Link Fixer settings stay hidden after the page reloads.',
+					'when'   => array( $page, $option( 'iawmlf_process_links', false ) ),
 					'checks' => array(
 						$checked( '#iawmlf_process_links', false ),
 						$visible( $fixer_rows, false, 'The Link Fixer settings are hidden' ),
