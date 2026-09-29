@@ -15,4 +15,6 @@ An onboarded site with default settings and no Archive.org keys. The site opens 
 | 7 | Change the fixer mode back to **Replace link**. | The Link Icon row shows again. |
 | 8 | Set the check frequency to **7** days and failures before broken to **5**, **Save Changes**. | After the reload the fields show 7 and 5. |
 | 9 | Type `*example.org/private*` in the link exclusion box, **Add**, **Save Changes**. | The rule is listed under link exclusions. |
-| 10 | Untick **Enable Link Fixer**, **Save Changes**. | It stays unticked and the Link Fixer settings stay hidden after the reload. |
+| 10 | Change the fixer mode to **Check only**, **Save Changes**. | After the reload the **Link Icon** row is still hidden. **Fails on 1.5.0-RC1:** the row shows, because `admin_settings.js` runs `toggleElements()` for Enable Link Fixer after `toggleFixerReplaceFields()` and un-hides every Link Fixer row, the Link Icon row included. |
+| 11 | Untick **Enable Link Fixer**, **Save Changes**. | It stays unticked and the Link Fixer settings stay hidden after the reload. |
+| 12 | With **Check only** still selected, tick **Enable Link Fixer** again (do not save). | The Link Fixer settings show, but the Link Icon row stays hidden. **Fails on 1.5.0-RC1** for the same reason as step 10. |

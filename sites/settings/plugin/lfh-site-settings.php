@@ -211,6 +211,17 @@ add_filter(
 					),
 				),
 				array(
+					'id'     => 'check-only-saved',
+					'do'     => 'Change the fixer mode to "Check only" and press Save Changes.',
+					'expect' => 'After the page reloads the Link Icon row is still hidden.',
+					'when'   => array(
+						$page,
+						$option( 'iawmlf_fixer_option', 'check_only' ),
+						$option( 'iawmlf_process_links', true ),
+					),
+					'checks' => array( $visible( $icon_row, false, 'The Link Icon row is hidden after the reload' ) ),
+				),
+				array(
 					'id'     => 'fixer-off',
 					'do'     => 'Untick "Enable Link Fixer" and press Save Changes.',
 					'expect' => 'It stays unticked and the Link Fixer settings stay hidden after the page reloads.',
@@ -218,6 +229,21 @@ add_filter(
 					'checks' => array(
 						$checked( '#iawmlf_process_links', false ),
 						$visible( $fixer_rows, false, 'The Link Fixer settings are hidden' ),
+					),
+				),
+				array(
+					'id'     => 'check-only-retick',
+					'do'     => 'With "Check only" still selected, tick "Enable Link Fixer" again (do not save).',
+					'expect' => 'The Link Fixer settings show again, but the Link Icon row stays hidden.',
+					'when'   => array(
+						$page,
+						$option( 'iawmlf_process_links', false ),
+						$checked( '#iawmlf_process_links', true ),
+						$value( '#iawmlf_fixer_option', 'check_only', '' ),
+					),
+					'checks' => array(
+						$visible( $fixer_rows, true, 'The Link Fixer settings are showing' ),
+						$visible( $icon_row, false, 'The Link Icon row is still hidden' ),
 					),
 				),
 			),
