@@ -278,6 +278,9 @@
 				? ''
 				: '<div class="lfh-cl-body">' +
 				  ( C.intro ? '<p class="lfh-cl-intro">' + esc( C.intro ) + '</p>' : '' ) +
+				  ( C.online_toggle
+					? '<p class="lfh-cl-status">Archive.org stand-in: <b>' + ( C.archive_online === 'no' ? 'offline' : 'online' ) + '</b> <button type="button" data-cl="toggle-online">' + ( C.archive_online === 'no' ? 'Bring back online' : 'Take offline' ) + '</button></p>'
+					: '' ) +
 				  '<ol>' + items + '</ol>' +
 				  queueHtml() +
 				  '<p class="lfh-cl-actions"><button type="button" data-cl="copy">Copy report</button><button type="button" data-cl="reset">Start again</button></p>' +
@@ -319,6 +322,11 @@
 				await runQueue( action === 'run-all' ? 'all' : 'next' );
 			} else if ( action === 'refresh' ) {
 				await loadQueue();
+			} else if ( action === 'toggle-online' ) {
+				// lfh/v1/settings also clears the Link Fixer's cached online status.
+				await api( 'settings', { archive_online: C.archive_online === 'no' ? 'yes' : 'no' } );
+				window.location.reload();
+				return;
 			}
 		} catch ( e ) {
 			status = action + ' failed: ' + e.message;
