@@ -14,6 +14,7 @@ WordPress Playground test sites for the [Internet Archive Wayback Machine Link F
 | Background archiving and retries: eight links through the Action Scheduler jobs, one job at a time | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/sites/archive-pipeline/blueprint.json) | [CHECKLIST.md](sites/archive-pipeline/CHECKLIST.md) |
 | Archive.org offline: what shows while offline, jobs waiting an hour, carrying on once back | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/sites/archive-offline/blueprint.json) | [CHECKLIST.md](sites/archive-offline/CHECKLIST.md) |
 | Display modes and link icons: five posts, one per setting | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/sites/display-modes/blueprint.json) | [CHECKLIST.md](sites/display-modes/CHECKLIST.md) |
+| Editor permissions: logged in as an editor, with the reporting screens opened to editors | [Open in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/sites/permissions/blueprint.json) | [CHECKLIST.md](sites/permissions/CHECKLIST.md) |
 
 Each blueprint installs three plugins: the Link Fixer release zip, `zips/core.zip` (the shared helper) and the site's own zip.
 
@@ -38,6 +39,7 @@ To add a site: copy a folder under `sites/`, give its plugin a scenario class ex
 - **Fake Archive.org clients.** `iawmlf_snapshot_client`, `iawmlf_link_checker_client` and `iawmlf_system_client` are replaced, so nothing reaches archive.org and every response is scripted by the link URL (see below).
 - **Call log.** Every fake call is stored in `{prefix}lfh_calls` with what triggered it (REST route, Action Scheduler action, admin page). REST responses carry the calls made during that request in the `X-LFH-Calls` header.
 - **Scenarios.** `LinkFixer_Harness\Scenario` seeds posts and link rows straight into the Link Fixer's table, with check histories dated relative to now, and can reset and age them. A post can force options for its own page views (`pre_option_*`).
+- **Checklist panel.** On admin and front end pages, for an administrator (a site can open it to other roles with the `lfh_checklist_capability` filter): the site's steps, ticked off as the panel sees them happen. A `page` check opens an address as the logged in user, for pages the panel cannot load on.
 - **Floating panel.** On a scenario post, for an administrator: predicts what the Link Fixer should do to every link on this load, watches what it actually does (REST checks, server calls, href swaps, `data-iawmlf-*` attributes, the link icon), marks each link pass or fail, and runs a checklist. Buttons: Age 4 days + reload, Reload, Reseed, Copy report, Save results. `window.LFH.report()` returns the same as JSON.
 
 ## URL scripts

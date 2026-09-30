@@ -28,13 +28,27 @@ defined( 'ABSPATH' ) || exit;
  *   checks - what must be true then; all must pass.
  *
  * Checks in "when" and "checks" run in the browser (url, param, text, notice, value, visible, exists, missing,
- * checked, count, script) or on the server (option, action, link_row, calls, see Checks). An item is only
+ * checked, count, script, page) or on the server (option, action, link_row, calls, see Checks). An item is only
  * judged on a page where every "when" check passes; once passed it stays passed. Items are judged when a
  * page loads and again after any change to a field on the page.
+ *
+ * A "page" check fetches url (admin:<path> or front:<path>) as the logged in user, for pages the panel cannot
+ * load on (such as WordPress's "not allowed" screen), and compares its HTTP status and text.
+ *
+ * The panel is for administrators; a site can open it to other roles with the lfh_checklist_capability filter.
  */
 class Checklist {
 
 	private const STATE_OPTION = 'lfh_checklist_state';
+
+	/**
+	 * The capability needed to see the panel and use its routes.
+	 *
+	 * @return string
+	 */
+	public static function capability(): string {
+		return (string) apply_filters( 'lfh_checklist_capability', 'manage_options' );
+	}
 
 	/**
 	 * Registers the hooks.
@@ -116,7 +130,10 @@ class Checklist {
 		$items = array();
 
 		foreach ( $list['items'] as $item ) {
-			$browser = static fn( $checks ) => array_values( array_filter( (array) $checks, static fn( $check ) => ! Checks::is_server( $check ) ) );
+			$browser = static fn( $checks ) => array_map(
+				static fn( $check ) => 'page' === ( $check['type'] ?? '' ) ? array_merge( $check, array( 'url' => self::resolve_link( (string) $check['url'] ) ) ) : $check,
+				array_values( array_filter( (array) $checks, static fn( $check ) => ! Checks::is_server( $check ) ) )
+			);
 			$server  = static fn( $checks ) => count( array_filter( (array) $checks, array( Checks::class, 'is_server' ) ) );
 
 			$items[] = array(
@@ -158,7 +175,7 @@ class Checklist {
 	}
 
 	/**
-	 * Registers the routes, administrators only.
+	 * Registers the routes, for users with the panel's capability.
 	 *
 	 * @return void
 	 */
@@ -177,7 +194,7 @@ class Checklist {
 				array(
 					'methods'             => $config[0],
 					'callback'            => array( self::class, $config[1] ),
-					'permission_callback' => static fn() => current_user_can( 'manage_options' ),
+					'permission_callback' => static fn() => current_user_can( self::capability() ),
 				)
 			);
 		}
@@ -258,12 +275,12 @@ class Checklist {
 	}
 
 	/**
-	 * Loads the panel for administrators when the site has a checklist.
+	 * Loads the panel for users with its capability when the site has a checklist.
 	 *
 	 * @return void
 	 */
 	public static function enqueue(): void {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( self::capability() ) ) {
 			return;
 		}
 

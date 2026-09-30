@@ -107,6 +107,20 @@
 					pass: !! window.iawmlfArchivedLinks === c.loaded,
 					detail: 'loaded: ' + !! window.iawmlfArchivedLinks,
 				};
+			case 'page': {
+				// Fetched as the logged in user, for pages the panel cannot load on.
+				const say =
+					c.say ||
+					c.url + ( c.status !== undefined ? ' answers HTTP ' + c.status : '' ) + ( c.has !== undefined ? ' and says "' + c.has + '"' : '' );
+				return fetch( c.url, { credentials: 'same-origin' } )
+					.then( async ( response ) => {
+						const body = ( await response.text() ).replace( /<[^>]+>/g, ' ' ).replace( /\s+/g, ' ' ).trim();
+						const statusOk = c.status === undefined || response.status === c.status;
+						const textOk = c.has !== undefined ? body.includes( c.has ) : c.lacks === undefined || ! body.includes( c.lacks );
+						return { say, pass: statusOk && textOk, detail: 'HTTP ' + response.status + ', "' + body.slice( 0, 120 ) + '"' };
+					} )
+					.catch( ( error ) => ( { say, pass: false, detail: error.message } ) );
+			}
 			case 'notice': {
 				// Any admin notice on the page, not just the first.
 				const notices = Array.from( document.querySelectorAll( '.notice, .updated, .error' ) ).map( ( n ) =>
@@ -130,11 +144,12 @@
 			if ( state[ item.id ] && state[ item.id ].state === 'pass' ) {
 				continue;
 			}
-			if ( ! item.when.map( evaluate ).every( ( r ) => r.pass ) ) {
+			// A page check answers with a promise.
+			if ( ! ( await Promise.all( item.when.map( evaluate ) ) ).every( ( r ) => r.pass ) ) {
 				continue;
 			}
 
-			let results = item.checks.map( evaluate );
+			let results = await Promise.all( item.checks.map( evaluate ) );
 			if ( item.server ) {
 				const server = await api( 'checklist/evaluate', { id: item.id } );
 				if ( ! server.applies ) {
