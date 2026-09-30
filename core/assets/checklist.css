@@ -125,6 +125,26 @@
 	border-color: rgba( 255, 255, 255, 0.5 );
 }
 
+#lfh-checklist .lfh-cl-h {
+	margin: 10px 0 4px;
+	font-weight: 600;
+}
+
+#lfh-checklist .lfh-cl-jobs li {
+	display: block;
+	padding: 2px 4px;
+	border-bottom: 1px solid #f6f7f7;
+	font-size: 12px;
+}
+
+#lfh-checklist .lfh-cl-job-complete .lfh-cl-mark {
+	color: #00a32a;
+}
+
+#lfh-checklist .lfh-cl-job-failed .lfh-cl-mark {
+	color: #d63638;
+}
+
 #lfh-checklist .lfh-cl-status {
 	padding: 4px 6px;
 	background: #f0f6fc;

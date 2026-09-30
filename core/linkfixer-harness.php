@@ -25,6 +25,7 @@ require_once LFH_PATH . 'src/Scenario.php';
 require_once LFH_PATH . 'src/Scenarios.php';
 require_once LFH_PATH . 'src/Checks.php';
 require_once LFH_PATH . 'src/Checklist.php';
+require_once LFH_PATH . 'src/Queue.php';
 require_once LFH_PATH . 'src/Rest.php';
 require_once LFH_PATH . 'src/Widget.php';
 
@@ -64,6 +65,7 @@ function boot(): void {
 	Call_Log::init();
 	Scenarios::init();
 	Checklist::init();
+	Queue::init();
 	Rest::init();
 	Widget::init();
 

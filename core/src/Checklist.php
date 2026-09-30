@@ -17,6 +17,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * title - the site's name.
  * intro - one or two sentences on what the site is for.
+ * queue - true to show the Link Fixer's background jobs in the panel, with buttons to run them (see Queue).
  * items - in order, each:
  *   id     - unique within the site.
  *   do     - what the tester does, in plain English.
@@ -131,6 +132,7 @@ class Checklist {
 		return array(
 			'title' => $list['title'],
 			'intro' => $list['intro'],
+			'queue' => ! empty( $list['queue'] ),
 			'items' => $items,
 		);
 	}

@@ -171,6 +171,74 @@
 		return lines.join( '\n' ) + '\n';
 	}
 
+	/* Background jobs (sites with "queue"). */
+	let queue = null;
+	let lastRun = '';
+
+	const shortLink = ( url ) => {
+		if ( ! url ) {
+			return '';
+		}
+		const match = url.match( /^https?:\/\/harness\.test\/([^/]+)/ );
+		return match ? match[ 1 ] : url.replace( /^https?:\/\//, '' ).slice( 0, 40 );
+	};
+
+	const due = ( seconds ) => {
+		if ( seconds <= 60 ) {
+			return 'due now';
+		}
+		if ( seconds < 3600 ) {
+			return 'in ' + Math.round( seconds / 60 ) + ' min';
+		}
+		return 'in ' + Math.round( seconds / 3600 ) + ' h';
+	};
+
+	const jobLine = ( job ) =>
+		esc( job.label ) +
+		( job.link ? ' · <b>' + esc( shortLink( job.link ) ) + '</b>' : '' ) +
+		( job.attempt !== null && job.attempt !== undefined ? ' · attempt ' + esc( job.attempt ) : '' );
+
+	async function loadQueue() {
+		queue = await api( 'queue' );
+		render();
+	}
+
+	async function runQueue( mode ) {
+		status = mode === 'all' ? 'Running every job...' : 'Running the next job...';
+		render();
+		const result = await api( 'queue/run', { mode } );
+		queue = result.queue;
+		lastRun = result.ran.length
+			? result.ran.map( ( j ) => j.label + ( j.link ? ' (' + shortLink( j.link ) + ')' : '' ) + ': ' + j.status + ( j.message ? ', ' + j.message : '' ) ).join( ' | ' )
+			: 'Nothing was waiting.';
+		status = '';
+		render();
+		await judgeSoon();
+	}
+
+	function queueHtml() {
+		if ( ! C.queue ) {
+			return '';
+		}
+		if ( ! queue ) {
+			return '<h4 class="lfh-cl-h">Background jobs</h4><p>Loading...</p>';
+		}
+		const pending = queue.pending
+			.map( ( j ) => '<li>' + jobLine( j ) + ' · <em>' + due( j.in ) + '</em></li>' )
+			.join( '' );
+		const recent = queue.recent
+			.map( ( j ) => '<li class="lfh-cl-job-' + esc( j.status ) + '"><span class="lfh-cl-mark">' + ( j.status === 'complete' ? '&#10003;' : '&#10007;' ) + '</span>' + jobLine( j ) + ( j.message ? ' · <em>' + esc( j.message ) + '</em>' : '' ) + '</li>' )
+			.join( '' );
+
+		return (
+			'<h4 class="lfh-cl-h">Background jobs</h4>' +
+			'<p class="lfh-cl-actions"><button type="button" data-cl="run-next">Run next job</button><button type="button" data-cl="run-all">Run all jobs</button><button type="button" data-cl="refresh">Refresh</button></p>' +
+			( lastRun ? '<p class="lfh-cl-status">Just ran: ' + esc( lastRun ) + '</p>' : '' ) +
+			'<p><b>Waiting (' + queue.pending.length + ')</b></p><ul class="lfh-cl-jobs">' + ( pending || '<li>Nothing waiting.</li>' ) + '</ul>' +
+			'<p><b>Recently run</b></p><ul class="lfh-cl-jobs">' + ( recent || '<li>Nothing yet.</li>' ) + '</ul>'
+		);
+	}
+
 	/* Panel. */
 	const panel = document.createElement( 'div' );
 	panel.id = 'lfh-checklist';
@@ -211,6 +279,7 @@
 				: '<div class="lfh-cl-body">' +
 				  ( C.intro ? '<p class="lfh-cl-intro">' + esc( C.intro ) + '</p>' : '' ) +
 				  '<ol>' + items + '</ol>' +
+				  queueHtml() +
 				  '<p class="lfh-cl-actions"><button type="button" data-cl="copy">Copy report</button><button type="button" data-cl="reset">Start again</button></p>' +
 				  ( status ? '<p class="lfh-cl-status">' + esc( status ) + '</p>' : '' ) +
 				  '</div>' );
@@ -246,6 +315,10 @@
 				await api( 'checklist/reset', {} );
 				Object.keys( state ).forEach( ( key ) => delete state[ key ] );
 				status = 'Ticks cleared.';
+			} else if ( action === 'run-next' || action === 'run-all' ) {
+				await runQueue( action === 'run-all' ? 'all' : 'next' );
+			} else if ( action === 'refresh' ) {
+				await loadQueue();
 			}
 		} catch ( e ) {
 			status = action + ' failed: ' + e.message;
@@ -299,5 +372,11 @@
 		}
 		await sleep( 700 );
 		judgeSoon();
+		if ( C.queue ) {
+			loadQueue().catch( ( e ) => {
+				status = 'Could not load the background jobs: ' + e.message;
+				render();
+			} );
+		}
 	} )();
 } )();

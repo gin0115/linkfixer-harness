@@ -34,10 +34,11 @@ class Checks {
 	 * Runs one server side check.
 	 *
 	 * option   - name, and is (equals, null means not set) or has (a list or text contains it).
-	 * action   - hook, status (one or a list), count or min, optional args and within (seconds from now).
+	 * action   - hook, status (one or a list), count or min, and optionally args, url (only that link's jobs),
+	 *            within (seconds either side of now) or due_min / due_max (seconds from now).
 	 * link_row - url, field (broken, excluded, archived, archived_href, process, checks, last_code, redirect, message),
 	 *            and is (equals) or has (contains).
-	 * calls    - method, url_has, min.
+	 * calls    - method, url_has, min and optionally max.
 	 *
 	 * @param array<string, mixed> $check The check.
 	 *
@@ -107,7 +108,7 @@ class Checks {
 				$count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table WHERE method = %s AND url LIKE %s", $check['method'], '%' . $wpdb->esc_like( (string) $check['url_has'] ) . '%' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 				return array(
 					'say'    => $check['say'] ?? sprintf( 'Archive.org was asked %1$s about %2$s', $check['method'], $check['url_has'] ),
-					'pass'   => $count >= (int) ( $check['min'] ?? 1 ),
+					'pass'   => $count >= (int) ( $check['min'] ?? 1 ) && ( ! isset( $check['max'] ) || $count <= (int) $check['max'] ),
 					'detail' => 'found ' . $count,
 				);
 		}
@@ -140,6 +141,33 @@ class Checks {
 				$query['args'] = $check['args'];
 			}
 			$ids = array_merge( $ids, array_map( 'intval', (array) as_get_scheduled_actions( $query, 'ids' ) ) );
+		}
+
+		// Only jobs for one link.
+		if ( isset( $check['url'] ) ) {
+			$link    = ( new Link_Repository() )->find_by_url( (string) $check['url'] );
+			$link_id = null === $link ? -1 : (int) $link->get_id();
+			$ids     = array_values(
+				array_filter(
+					$ids,
+					static fn( $id ) => (int) ( \ActionScheduler::store()->fetch_action( (string) $id )->get_args()['link_id'] ?? 0 ) === $link_id
+				)
+			);
+		}
+
+		// Due between due_min and due_max seconds from now.
+		if ( isset( $check['due_min'] ) || isset( $check['due_max'] ) ) {
+			$from = time() + (int) ( $check['due_min'] ?? PHP_INT_MIN );
+			$to   = time() + (int) ( $check['due_max'] ?? 10 * YEAR_IN_SECONDS );
+			$ids  = array_values(
+				array_filter(
+					$ids,
+					static function ( $id ) use ( $from, $to ) {
+						$time = \ActionScheduler::store()->get_date( $id )->getTimestamp();
+						return $time >= $from && $time <= $to;
+					}
+				)
+			);
 		}
 
 		// ActionScheduler_DBStore::get_date() is the due date for a pending job and the run date for any other.
