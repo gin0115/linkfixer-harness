@@ -11,7 +11,7 @@ The site opens logged in as a user called `editor` with the Editor role. Its plu
 | 3 | Look at Link Fixer in the WordPress admin left-hand menu. | It has Dashboard and Links, and no Advanced Settings. |
 | 4 | Open `/wp-admin/admin.php?page=iawmlf_settings`, then go back. | "Sorry, you are not allowed to access this page." |
 | 5 | Open `/wp-admin/admin.php?page=iawmlf-setup-wizard`, then go back. | "Sorry, you are not allowed to access this page." |
-| 6 | Open Link Fixer (its Dashboard page). | The link numbers show, and **no Advanced Settings** button. |
+| 6 | Open Link Fixer (its Dashboard page). | "Wayback Link Fixer - Dashboard" opens, with **no Advanced Settings** button. |
 | 7 | Open Link Fixer, Links. | Three rows (E1 to E3), and Bulk actions offers all four actions. |
 | 8 | Tick E1, choose "Check link status" and press Apply. | A notice says E1 was checked successfully with 404 status. |
 | 9 | Open E3, tick "Exclude this link" and confirm. | "Link updated successfully." E3 is saved as excluded, recorded as asked for by "editor". |

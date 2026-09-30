@@ -133,11 +133,11 @@ add_filter(
 				array(
 					'id'     => 'lf-dashboard',
 					'do'     => 'Open Link Fixer (its Dashboard page).',
-					'expect' => 'The link numbers show, and there is no Advanced Settings button.',
+					'expect' => 'The "Wayback Link Fixer - Dashboard" page opens, and there is no Advanced Settings button.',
 					'link'   => 'admin:admin.php?page=iawmlf-dashboard',
 					'when'   => array( $param( 'page', 'iawmlf-dashboard' ) ),
 					'checks' => array(
-						$exists( '.iawmlf_dashboard-stats-number', 'The link numbers show' ),
+						$text( '.wrap h1', 'Wayback Link Fixer - Dashboard', 'The Link Fixer Dashboard page opens' ),
 						$missing( '.wrap ' . $settings_link, 'There is no Advanced Settings button' ),
 					),
 				),

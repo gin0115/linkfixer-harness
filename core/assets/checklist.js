@@ -114,7 +114,11 @@
 					c.url + ( c.status !== undefined ? ' answers HTTP ' + c.status : '' ) + ( c.has !== undefined ? ' and says "' + c.has + '"' : '' );
 				return fetch( c.url, { credentials: 'same-origin' } )
 					.then( async ( response ) => {
-						const body = ( await response.text() ).replace( /<[^>]+>/g, ' ' ).replace( /\s+/g, ' ' ).trim();
+						const body = ( await response.text() )
+							.replace( /<head[\s\S]*?<\/head>/i, ' ' )
+							.replace( /<[^>]+>/g, ' ' )
+							.replace( /\s+/g, ' ' )
+							.trim();
 						const statusOk = c.status === undefined || response.status === c.status;
 						const textOk = c.has !== undefined ? body.includes( c.has ) : c.lacks === undefined || ! body.includes( c.lacks );
 						return { say, pass: statusOk && textOk, detail: 'HTTP ' + response.status + ', "' + body.slice( 0, 120 ) + '"' };

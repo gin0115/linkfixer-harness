@@ -18,6 +18,10 @@ WordPress Playground test sites for the [Internet Archive Wayback Machine Link F
 
 Each blueprint installs three plugins: the Link Fixer release zip, `zips/core.zip` (the shared helper) and the site's own zip.
 
+## Playground notes
+
+- Playground runs WordPress on SQLite. `Link_Repository` queries with the default order (`ORDER_DATE_DESC`) use `JSON_LENGTH`, which that database does not have, so they fail and count 0. On these sites the Link Fixer Dashboard's total ("Links Found So Far", "Total Links") and the widget's "View Links (N)" show 0. MySQL has `JSON_LENGTH`, so real sites are not affected.
+
 ## Layout
 
 ```
