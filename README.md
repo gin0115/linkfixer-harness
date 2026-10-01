@@ -20,7 +20,8 @@ Each blueprint installs three plugins: the Link Fixer release zip, `zips/core.zi
 
 ## Playground notes
 
-- Playground runs WordPress on SQLite. `Link_Repository` queries with the default order (`ORDER_DATE_DESC`) use `JSON_LENGTH`, which that database does not have, so they fail and count 0. On these sites the Link Fixer Dashboard's total ("Links Found So Far", "Total Links") and the widget's "View Links (N)" show 0. MySQL has `JSON_LENGTH`, so real sites are not affected.
+- Playground runs WordPress on SQLite. `Link_Repository` queries with the default order (`ORDER_DATE_DESC`) use `JSON_LENGTH`, which that database does not have, so they failed and counted 0. Core adds `JSON_LENGTH` to the SQLite connection (`LinkFixer_Harness\Sqlite`), so the Link Fixer Dashboard's total ("Links Found So Far", "Total Links") and the widget's "View Links (N)" count the links as they would on MySQL.
+- Still failing on Playground: `CONCAT("$[", JSON_LENGTH(checks) - 1, "].date")` in the date orders. The SQLite translation turns it into `'$[' || JSON_LENGTH(checks) - 1 || '].date'`, and SQLite's `||` binds tighter than `-`, so the JSON path is `-1` and the query fails ("bad JSON path"). So the Link Fixer Dashboard's list of the last 10 checks is empty. Sorting the Links table by its last check column uses the same expression (not run here). MySQL is not affected.
 
 ## Layout
 

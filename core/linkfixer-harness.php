@@ -28,6 +28,10 @@ require_once LFH_PATH . 'src/Checklist.php';
 require_once LFH_PATH . 'src/Queue.php';
 require_once LFH_PATH . 'src/Rest.php';
 require_once LFH_PATH . 'src/Widget.php';
+require_once LFH_PATH . 'src/Sqlite.php';
+
+// Before anything queries the Link Fixer's table.
+Sqlite::init();
 
 register_activation_hook( __FILE__, array( Call_Log::class, 'install' ) );
 
