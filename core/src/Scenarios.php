@@ -30,6 +30,23 @@ class Scenarios {
 		add_filter( 'iawmlf_exclude_link_from_post', array( self::class, 'filter_post_exclusion' ), 10, 3 );
 		add_action( 'wp', array( self::class, 'apply_overrides' ) );
 		add_action( 'template_redirect', array( self::class, 'maybe_redirect' ) );
+		add_action( 'save_post', array( self::class, 'record_save' ) );
+	}
+
+	/**
+	 * Records every post saved since the last seed, so checklists know when a post has been updated (lfh_saved_posts).
+	 *
+	 * @param integer $post_id The post.
+	 *
+	 * @return void
+	 */
+	public static function record_save( $post_id ): void {
+		if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+			return;
+		}
+		$saved   = (array) get_option( 'lfh_saved_posts', array() );
+		$saved[] = (int) $post_id;
+		update_option( 'lfh_saved_posts', array_values( array_unique( $saved ) ), false );
 	}
 
 	/**

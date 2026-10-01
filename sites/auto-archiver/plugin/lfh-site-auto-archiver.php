@@ -28,19 +28,6 @@ add_action(
 	}
 );
 
-// Every post saved, so the checklist knows when a post has been updated.
-add_action(
-	'save_post',
-	static function ( $post_id ) {
-		if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
-			return;
-		}
-		$saved   = (array) get_option( 'lfh_saved_posts', array() );
-		$saved[] = (int) $post_id;
-		update_option( 'lfh_saved_posts', array_values( array_unique( $saved ) ), false );
-	}
-);
-
 add_filter(
 	'lfh_checklist',
 	static function () {

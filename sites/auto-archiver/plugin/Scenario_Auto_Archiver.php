@@ -104,9 +104,6 @@ class Scenario_Auto_Archiver extends Scenario {
 		update_option( Settings::ROUTINELY_UPDATE_WAYBACK_MACHINE_INTERVAL, 28 );
 		update_option( Settings::ALLOW_OWN_CONTENT_SUBMISSIONS, true );
 
-		// The site plugin records every save from here on.
-		delete_option( 'lfh_saved_posts' );
-
 		return $registry;
 	}
 }

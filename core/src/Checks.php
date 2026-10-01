@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class Checks {
 
-	public const SERVER_TYPES = array( 'option', 'action', 'link_row', 'calls', 'post_meta' );
+	public const SERVER_TYPES = array( 'option', 'action', 'link_row', 'calls', 'post_meta', 'meta_count' );
 
 	/**
 	 * Whether a check is answered on the server.
@@ -40,6 +40,7 @@ class Checks {
 	 *            and is (equals) or has (contains).
 	 * calls    - method, url_has, min and optionally max.
 	 * post_meta - post, key, and is (equals) or within (a timestamp within that many seconds of now); neither means set.
+	 * meta_count - posts (ids), key, is: how many of the posts have the key.
 	 *
 	 * @param array<string, mixed> $check The check.
 	 *
@@ -126,6 +127,15 @@ class Checks {
 					'say'    => $check['say'] ?? sprintf( 'Post %1$d: %2$s', $check['post'], $check['key'] ),
 					'pass'   => $pass,
 					'detail' => 'found ' . wp_json_encode( $actual ),
+				);
+
+			case 'meta_count':
+				$posts = array_map( 'intval', (array) $check['posts'] );
+				$count = count( array_filter( $posts, static fn( $post_id ) => metadata_exists( 'post', $post_id, (string) $check['key'] ) ) );
+				return array(
+					'say'    => $check['say'] ?? sprintf( '%1$d posts have %2$s', $check['is'], $check['key'] ),
+					'pass'   => (int) $check['is'] === $count,
+					'detail' => sprintf( 'found %1$d of %2$d', $count, count( $posts ) ),
 				);
 		}
 

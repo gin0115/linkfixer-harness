@@ -45,6 +45,8 @@ abstract class Scenario {
 	 * Each has title and intro, and optionally:
 	 * excluded  - true to put the post in the Link Fixer excluded posts list.
 	 * overrides - option => value, forced for views of that post only (pre_option_{option}).
+	 * type      - post type, post by default.
+	 * status    - post status, publish by default.
 	 *
 	 * @return array<string, array<string, mixed>>
 	 */
@@ -271,8 +273,8 @@ abstract class Scenario {
 				array(
 					'post_title'   => $post['title'],
 					'post_content' => $this->content( $role, $post['intro'] ),
-					'post_status'  => 'publish',
-					'post_type'    => 'post',
+					'post_status'  => $post['status'] ?? 'publish',
+					'post_type'    => $post['type'] ?? 'post',
 					'meta_input'   => array(
 						'_lfh_scenario' => $this->slug(),
 						'_lfh_role'     => $role,
@@ -359,6 +361,9 @@ abstract class Scenario {
 		update_option( Settings::LINK_FIXER_EXCLUDED_POSTS, array_values( array_unique( array_filter( $excluded ) ) ) );
 
 		update_option( Settings::PROCESS_LINKS, true );
+
+		// Saves are recorded from here on (Scenarios::record_save()).
+		delete_option( 'lfh_saved_posts' );
 
 		$registry = array(
 			'posts'        => $posts,
