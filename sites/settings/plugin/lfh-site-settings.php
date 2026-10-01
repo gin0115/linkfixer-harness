@@ -211,6 +211,26 @@ add_filter(
 					),
 				),
 				array(
+					'id'     => 'exclusion-encoded',
+					'do'     => 'Add the rule *example.org/my%20page* (an address with a space written as %20) and press Save Changes.',
+					'expect' => 'The rule is saved exactly as typed, %20 included, so it matches that address.',
+					'when'   => array(
+						$page,
+						array(
+							'type'     => 'exists',
+							'selector' => '#iawmlf_excluded_links input[value*="example.org/my"]',
+						),
+					),
+					'checks' => array(
+						array(
+							'type' => 'option',
+							'name' => 'iawmlf_link_exclusions',
+							'has'  => '*example.org/my%20page*',
+							'say'  => 'The saved rule is *example.org/my%20page*',
+						),
+					),
+				),
+				array(
 					'id'     => 'check-only-saved',
 					'do'     => 'Change the fixer mode to "Check only" and press Save Changes.',
 					'expect' => 'After the page reloads the Link Icon row is still hidden.',
