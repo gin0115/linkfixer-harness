@@ -7,6 +7,8 @@
 
 namespace LinkFixer_Harness;
 
+use Internet_Archive\Wayback_Machine_Link_Fixer\Settings\Settings;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -96,5 +98,16 @@ class Scenario_Permissions extends Scenario {
 				)
 			),
 		);
+	}
+
+	/**
+	 * Seeds, and puts the excluded post on the Auto Archiver excluded posts list too.
+	 *
+	 * @return array<string, mixed> The registry.
+	 */
+	public function seed(): array {
+		$registry = parent::seed();
+		update_option( Settings::AUTO_ARCHIVER_EXCLUDED_POSTS, array( $registry['posts']['excluded'] ) );
+		return $registry;
 	}
 }

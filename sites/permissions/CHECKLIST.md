@@ -17,7 +17,8 @@ The site opens logged in as a user called `editor` with the Editor role. Its plu
 | 9 | Open E3, tick "Exclude this link" and confirm. | "Link updated successfully." E3 is saved as excluded, recorded as asked for by "editor". |
 | 10 | Open Posts. | The Links column shows "1 broken out of 3" and "Excluded post". |
 | 11 | Look at "Excluded post" in the Links column. | Plain text, **not a link** to Advanced Settings. |
+| 12 | Tick "Last Archived" in Screen Options, look at "Harness: an excluded post" (also excluded from auto archiving). | "Excluded post" as plain text, **not a link** to Advanced Settings. |
 
 The panel cannot load on WordPress's "not allowed" screen, so for 4 and 5 it opens the address itself as the editor and checks for a 403 with that message.
 
-On 1.5.0-RC1, 2, 6 and 11 fail: the widget (`templates/admin/dashboard/widget.php`, also used on the Link Fixer Dashboard page) always prints the Advanced Settings button, and `WP_Post_Table_Controller::render_link_column()` always links "Excluded post" to Advanced Settings. An editor following either gets "Sorry, you are not allowed to access this page."
+On 1.5.0-RC1, 2, 6, 11 and 12 fail: the widget (`templates/admin/dashboard/widget.php`, also used on the Link Fixer Dashboard page) always prints the Advanced Settings button, and `WP_Post_Table_Controller::render_link_column()` and `render_archived_column()` always link "Excluded post" to Advanced Settings. An editor following either gets "Sorry, you are not allowed to access this page."

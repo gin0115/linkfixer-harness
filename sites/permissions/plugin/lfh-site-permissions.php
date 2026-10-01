@@ -38,6 +38,8 @@ add_filter(
 	'lfh_checklist',
 	static function () {
 		$settings_link = 'a[href*="page=iawmlf_settings"]';
+		$scenario      = Scenarios::get( 'permissions' );
+		$excluded_cell = '#post-' . (int) ( ( $scenario ? (array) $scenario->registry() : array() )['posts']['excluded'] ?? 0 ) . ' td.column-wayback_archived';
 
 		$exists  = static fn( $selector, $say = '' ) => array_filter(
 			array(
@@ -217,7 +219,17 @@ add_filter(
 					'do'     => 'Look at "Excluded post" in the Links column.',
 					'expect' => 'It is plain text, not a link to Advanced Settings, which an editor cannot open.',
 					'when'   => array( $exists( 'body.edit-php.post-type-post' ) ),
-					'checks' => array( $missing( '#the-list ' . $settings_link, '"Excluded post" does not link to Advanced Settings' ) ),
+					'checks' => array( $missing( '#the-list td.column-wayback_links ' . $settings_link, '"Excluded post" in Links does not link to Advanced Settings' ) ),
+				),
+				array(
+					'id'     => 'posts-archived-text',
+					'do'     => 'In Screen Options tick "Last Archived", and look at "Harness: an excluded post" (it is also excluded from auto archiving).',
+					'expect' => 'Its Last Archived column says "Excluded post" as plain text, not a link to Advanced Settings.',
+					'when'   => array( $exists( 'body.edit-php.post-type-post' ) ),
+					'checks' => array(
+						$text( $excluded_cell, 'Excluded post', 'Last Archived says "Excluded post"' ),
+						$missing( $excluded_cell . ' ' . $settings_link, '"Excluded post" in Last Archived does not link to Advanced Settings' ),
+					),
 				),
 			),
 		);
