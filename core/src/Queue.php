@@ -31,6 +31,7 @@ class Queue {
 		'iawmlf_scan_existing_posts'     => 'Scan existing posts',
 		'iawmlf_process_local_post'      => 'Archive one of your posts',
 		'iawmlf_add_own_posts'           => 'Queue your posts for archiving',
+		'iawmlf_failed_event_garbage_collection' => 'Clean up old failed jobs',
 	);
 
 	/**
