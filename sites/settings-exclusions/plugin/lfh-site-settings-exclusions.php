@@ -73,9 +73,13 @@ add_filter(
 				array(
 					'id'     => 'amp',
 					'do'     => 'Clear the box and type "amp".',
-					'expect' => '"No posts found.": no post has "amp" in its title.',
+					'expect' => 'Only "Sample Page" is offered ("amp" is in "Sample"). "Harness: Tips & Tricks" has no "amp" in its title, so it is not offered, and no title shows "&amp;".',
 					'when'   => array( $page, $typed( $fixer, 'amp' ), $answered( $fixer ) ),
-					'checks' => array( $dropdown( $fixer, 'has', 'No posts found.', 'It says "No posts found."' ) ),
+					'checks' => array(
+						$dropdown( $fixer, 'has', 'Sample Page', '"Sample Page" is offered' ),
+						$dropdown( $fixer, 'lacks', 'Tips', '"Harness: Tips & Tricks" is not offered' ),
+						$dropdown( $fixer, 'lacks', '&amp;', 'No title shows "&amp;"' ),
+					),
 				),
 				array(
 					'id'     => 'exclude-save',
