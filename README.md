@@ -2,6 +2,8 @@
 
 WordPress Playground test sites for the [Internet Archive Wayback Machine Link Fixer](https://github.com/a8cteam51/internet-archive-wayback-machine-link-fixer) plugin. Each site is its own Playground, opened in a known state, with a floating panel that shows what should happen and watches what does. Every site has a `CHECKLIST.md` a person or an AI can follow, and the same steps can be driven by Puppeteer or Playwright.
 
+**Start with [GUIDE.md](GUIDE.md)**: how to use the sites, what each covers, what was found in 1.5.0-RC1, and how the harness works.
+
 ## Sites
 
 | Site | Open | Checklist |
