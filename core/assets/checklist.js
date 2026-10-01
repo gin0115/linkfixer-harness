@@ -242,12 +242,21 @@
 	}
 
 	async function runQueue( mode ) {
-		status = mode === 'all' ? 'Running every job...' : 'Running the next job...';
-		render();
-		const result = await api( 'queue/run', { mode } );
-		queue = result.queue;
-		lastRun = result.ran.length
-			? result.ran.map( ( j ) => j.label + ( j.link ? ' (' + shortLink( j.link ) + ')' : '' ) + ': ' + j.status + ( j.message ? ', ' + j.message : '' ) ).join( ' | ' )
+		// One job per request, so a long run never holds a single request open.
+		const max = mode === 'all' ? 60 : 1;
+		const ran = [];
+		for ( let i = 0; i < max; i++ ) {
+			status = mode === 'all' ? 'Running every job... (' + ran.length + ' done)' : 'Running the next job...';
+			render();
+			const result = await api( 'queue/run', { mode: 'next' } );
+			queue = result.queue;
+			if ( ! result.ran.length ) {
+				break;
+			}
+			ran.push( ...result.ran );
+		}
+		lastRun = ran.length
+			? ran.map( ( j ) => j.label + ( j.link ? ' (' + shortLink( j.link ) + ')' : '' ) + ': ' + j.status + ( j.message ? ', ' + j.message : '' ) ).join( ' | ' )
 			: 'Nothing was waiting.';
 		status = '';
 		render();
