@@ -466,11 +466,13 @@
 		} )
 	);
 
-	// Front end link checks finish after the page has loaded (watch.js).
-	document.addEventListener( 'lfh:fetch', () => {
-		window.clearTimeout( timer );
-		timer = window.setTimeout( judgeSoon, 500 );
-	} );
+	// Front end link checks finish, and links change, after the page has loaded (watch.js).
+	[ 'lfh:fetch', 'lfh:mutation' ].forEach( ( name ) =>
+		document.addEventListener( name, () => {
+			window.clearTimeout( timer );
+			timer = window.setTimeout( judgeSoon, 500 );
+		} )
+	);
 
 	// Things the page adds later (search results, AJAX), once they settle. The panel's own changes are ignored.
 	new window.MutationObserver( ( mutations ) => {
