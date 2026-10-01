@@ -118,6 +118,31 @@
 					pass: !! window.iawmlfArchivedLinks === c.loaded,
 					detail: 'loaded: ' + !! window.iawmlfArchivedLinks,
 				};
+			case 'fetches': {
+				// The Link Fixer's front end link checks seen by watch.js: count, done (answered),
+				// most (the most waiting at the same moment) or seconds (first sent to last answered).
+				const all = ( window.LFH_LOG && window.LFH_LOG.fetches ) || [];
+				const done = all.filter( ( f ) => f.ended );
+				const most = all.reduce(
+					( top, a ) => Math.max( top, all.filter( ( b ) => b.started <= a.started && ( ! b.ended || b.ended > a.started ) ).length ),
+					0
+				);
+				const seconds = done.length ? ( Math.max( ...done.map( ( f ) => f.ended ) ) - Math.min( ...all.map( ( f ) => f.started ) ) ) / 1000 : 0;
+				const value = { count: all.length, done: done.length, most, seconds }[ c.field ];
+				let pass = false;
+				if ( c.is !== undefined ) {
+					pass = value === c.is;
+				} else if ( c.max !== undefined ) {
+					pass = value <= c.max;
+				} else {
+					pass = value >= ( c.min ?? 1 );
+				}
+				return {
+					say: c.say || 'Front end link checks: ' + c.field,
+					pass,
+					detail: c.field + ' ' + ( 'seconds' === c.field ? value.toFixed( 1 ) : value ) + ' (' + all.length + ' sent, ' + done.length + ' answered, most at once ' + most + ')',
+				};
+			}
 			case 'timing': {
 				// How long the server took to answer this page, redirects included.
 				const nav = window.performance.getEntriesByType( 'navigation' )[ 0 ];
@@ -440,6 +465,12 @@
 			timer = window.setTimeout( judgeSoon, 500 );
 		} )
 	);
+
+	// Front end link checks finish after the page has loaded (watch.js).
+	document.addEventListener( 'lfh:fetch', () => {
+		window.clearTimeout( timer );
+		timer = window.setTimeout( judgeSoon, 500 );
+	} );
 
 	render();
 
