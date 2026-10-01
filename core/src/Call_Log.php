@@ -227,6 +227,21 @@ class Call_Log {
 	}
 
 	/**
+	 * How many calls of a method in the last few seconds had an outcome containing some text.
+	 *
+	 * @param string $method      The client method.
+	 * @param string $outcome_has Text the stored outcome must contain, such as "returned".
+	 * @param float  $seconds     How far back to look.
+	 *
+	 * @return integer
+	 */
+	public static function count_recent( string $method, string $outcome_has, float $seconds ): int {
+		global $wpdb;
+		$table = self::table();
+		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table WHERE method = %s AND created >= %f AND outcome LIKE %s", $method, microtime( true ) - $seconds, '%' . $wpdb->esc_like( $outcome_has ) . '%' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+	}
+
+	/**
 	 * Calls newer than an id, oldest first.
 	 *
 	 * @param integer $since_id Only return calls with a higher id.

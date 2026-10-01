@@ -107,6 +107,16 @@
 					pass: !! window.iawmlfArchivedLinks === c.loaded,
 					detail: 'loaded: ' + !! window.iawmlfArchivedLinks,
 				};
+			case 'timing': {
+				// How long the server took to answer this page, redirects included.
+				const nav = window.performance.getEntriesByType( 'navigation' )[ 0 ];
+				const seconds = nav ? nav.responseStart / 1000 : null;
+				return {
+					say: c.say || 'The page came back within ' + c.max + ' seconds',
+					pass: seconds !== null && seconds <= c.max,
+					detail: seconds === null ? 'no timing' : 'took ' + seconds.toFixed( 1 ) + ' s',
+				};
+			}
 			case 'page': {
 				// Fetched as the logged in user, for pages the panel cannot load on.
 				const say =
@@ -131,6 +141,15 @@
 					n.textContent.replace( /\s+/g, ' ' ).trim()
 				);
 				const found = notices.find( ( n ) => n.includes( c.has !== undefined ? c.has : c.lacks ) );
+				// With count: exactly that many notices contain the text.
+				if ( c.count !== undefined ) {
+					const matching = notices.filter( ( n ) => n.includes( c.has ) ).length;
+					return {
+						say: c.say || c.count + ' notices say "' + c.has + '"',
+						pass: matching === c.count,
+						detail: 'found ' + matching + ' of ' + notices.length + ' notices',
+					};
+				}
 				return {
 					say: c.say || ( c.has !== undefined ? 'A notice says "' + c.has + '"' : 'No notice says "' + c.lacks + '"' ),
 					pass: c.has !== undefined ? !! found : ! found,

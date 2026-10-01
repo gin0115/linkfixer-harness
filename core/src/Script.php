@@ -76,6 +76,24 @@ class Script {
 	}
 
 	/**
+	 * Seconds every answer for a URL takes, from its wait/<seconds> segment.
+	 *
+	 * @param string $url The URL.
+	 *
+	 * @return float
+	 */
+	public static function wait( string $url ): float {
+		if ( ! self::is_harness_url( $url ) ) {
+			return 0.0;
+		}
+
+		$segments = array_values( array_filter( explode( '/', strtolower( (string) wp_parse_url( $url, PHP_URL_PATH ) ) ), 'strlen' ) );
+		$at       = array_search( 'wait', $segments, true );
+
+		return false === $at || ! isset( $segments[ $at + 1 ] ) ? 0.0 : max( 0.0, (float) $segments[ $at + 1 ] );
+	}
+
+	/**
 	 * The value the next call of a method will get for a URL.
 	 *
 	 * @param string $key    Script key (check, archive, save, status, final).
@@ -85,6 +103,12 @@ class Script {
 	 * @return string
 	 */
 	public static function current( string $key, string $method, string $url ): string {
+		// A slow Archive.org: every answer for this link takes this long.
+		$wait = self::wait( $url );
+		if ( $wait > 0 ) {
+			usleep( (int) ( $wait * 1000000 ) );
+		}
+
 		$values = self::parse( $url )[ $key ];
 		$index  = min( Call_Log::count_calls( $method, $url ), count( $values ) - 1 );
 		return $values[ $index ];

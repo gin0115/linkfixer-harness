@@ -106,6 +106,12 @@ class Fake_Snapshot_Client implements Snapshot_Client {
 	public function create_snapshot( string $url ): string {
 		$value = Script::current( 'save', 'create_snapshot', $url );
 
+		// Archive.org's limit on snapshots per minute (lfh_snapshot_limit, 0 for none).
+		$limit = (int) get_option( 'lfh_snapshot_limit', 0 );
+		if ( $limit > 0 && Call_Log::count_recent( 'create_snapshot', '"returned"', MINUTE_IN_SECONDS ) >= $limit ) {
+			$value = 'limit';
+		}
+
 		switch ( $value ) {
 			case 'offline':
 				Call_Log::record( 'snapshot', 'create_snapshot', $url, array( 'threw' => 'Service_Offline_Exception' ) );

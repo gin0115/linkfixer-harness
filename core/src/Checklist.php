@@ -28,7 +28,7 @@ defined( 'ABSPATH' ) || exit;
  *   checks - what must be true then; all must pass.
  *
  * Checks in "when" and "checks" run in the browser (url, param, text, notice, value, visible, exists, missing,
- * checked, count, script, page) or on the server (option, action, link_row, calls, post_meta, see Checks). An item is only
+ * checked, count, script, page, timing) or on the server (option, action, link_row, calls, post_meta, see Checks). An item is only
  * judged on a page where every "when" check passes; once passed it stays passed. Items are judged when a
  * page loads and again after any change to a field on the page.
  *
