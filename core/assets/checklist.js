@@ -67,12 +67,23 @@
 					detail: c.name + '=' + value,
 				};
 			}
-			case 'text':
+			case 'text': {
+				// is: the whole text, has: contains, lacks: does not contain.
+				let pass = false;
+				if ( el !== null ) {
+					if ( c.is !== undefined ) {
+						pass = text === String( c.is );
+					} else {
+						pass = c.has !== undefined ? text.includes( c.has ) : ! text.includes( c.lacks );
+					}
+				}
+				const said = c.is !== undefined ? '"' + c.is + '" is shown' : c.has !== undefined ? '"' + c.has + '" is shown' : '"' + c.lacks + '" is not shown';
 				return {
-					say: c.say || ( c.has !== undefined ? '"' + c.has + '" is shown' : '"' + c.lacks + '" is not shown' ),
-					pass: el !== null && ( c.has !== undefined ? text.includes( c.has ) : ! text.includes( c.lacks ) ),
+					say: c.say || said,
+					pass,
 					detail: el ? '"' + text.slice( 0, 160 ) + '"' : 'not found: ' + c.selector,
 				};
+			}
 			case 'value':
 				return {
 					say: c.say || c.selector + ' shows "' + c.is + '"',
@@ -119,12 +130,24 @@
 			}
 			case 'page': {
 				// Fetched as the logged in user, for pages the panel cannot load on.
+				// from: fetch the address of a link on this page instead of url.
+				const link = c.from ? document.querySelector( c.from ) : null;
+				const url = c.from ? ( link ? link.href : '' ) : c.url;
 				const say =
 					c.say ||
-					c.url + ( c.status !== undefined ? ' answers HTTP ' + c.status : '' ) + ( c.has !== undefined ? ' and says "' + c.has + '"' : '' );
-				return fetch( c.url, { credentials: 'same-origin' } )
+					( c.from || c.url ) + ( c.status !== undefined ? ' answers HTTP ' + c.status : '' ) + ( c.has !== undefined ? ' and says "' + c.has + '"' : '' );
+				if ( ! url ) {
+					return { say, pass: false, detail: 'not found: ' + c.from };
+				}
+				return fetch( url, { credentials: 'same-origin' } )
 					.then( async ( response ) => {
-						const body = ( await response.text() )
+						const html = await response.text();
+						// rows: how many rows the Links table on that page lists.
+						if ( c.rows !== undefined ) {
+							const rows = new window.DOMParser().parseFromString( html, 'text/html' ).querySelectorAll( '#the-list tr:not(.no-items)' ).length;
+							return { say, pass: rows === c.rows, detail: 'the table lists ' + rows };
+						}
+						const body = html
 							.replace( /<head[\s\S]*?<\/head>/i, ' ' )
 							.replace( /<[^>]+>/g, ' ' )
 							.replace( /\s+/g, ' ' )

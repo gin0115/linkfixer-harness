@@ -131,7 +131,7 @@ class Checklist {
 
 		foreach ( $list['items'] as $item ) {
 			$browser = static fn( $checks ) => array_map(
-				static fn( $check ) => 'page' === ( $check['type'] ?? '' ) ? array_merge( $check, array( 'url' => self::resolve_link( (string) $check['url'] ) ) ) : $check,
+				static fn( $check ) => 'page' === ( $check['type'] ?? '' ) && isset( $check['url'] ) ? array_merge( $check, array( 'url' => self::resolve_link( (string) $check['url'] ) ) ) : $check,
 				array_values( array_filter( (array) $checks, static fn( $check ) => ! Checks::is_server( $check ) ) )
 			);
 			$server  = static fn( $checks ) => count( array_filter( (array) $checks, array( Checks::class, 'is_server' ) ) );

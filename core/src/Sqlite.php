@@ -38,6 +38,10 @@ class Sqlite {
 		} else {
 			$pdo->sqliteCreateFunction( 'JSON_LENGTH', $callback );
 		}
+
+		// The SQLite translation turns CONCAT("$[", JSON_LENGTH(`checks`) - 1, "].date") into '$[' || ... - 1 || '].date',
+		// and || binds tighter than - in SQLite, so the JSON path came out as -1. Brackets keep MySQL's meaning.
+		add_filter( 'query', static fn( $query ) => str_replace( 'JSON_LENGTH(`checks`) - 1', '(JSON_LENGTH(`checks`) - 1)', $query ) );
 	}
 
 	/**
