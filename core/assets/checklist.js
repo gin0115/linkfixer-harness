@@ -472,6 +472,15 @@
 		timer = window.setTimeout( judgeSoon, 500 );
 	} );
 
+	// Things the page adds later (search results, AJAX), once they settle. The panel's own changes are ignored.
+	new window.MutationObserver( ( mutations ) => {
+		if ( mutations.every( ( m ) => panel.contains( m.target ) ) ) {
+			return;
+		}
+		window.clearTimeout( timer );
+		timer = window.setTimeout( judgeSoon, 1000 );
+	} ).observe( document.body, { childList: true, subtree: true } );
+
 	render();
 
 	// Judge once the page has finished loading.
