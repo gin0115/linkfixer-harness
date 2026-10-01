@@ -6,11 +6,16 @@ Content written before the Link Fixer was installed, so none of it has been scan
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | Open Link Fixer (the site opens here). | Onboarding in progress, "Posts Checked" counts none of the 7 Harness posts yet, and a scan is waiting. |
+| 1 | Open Link Fixer (the site opens here). | Onboarding in progress and a scan is waiting. "Posts Checked" counts the published posts and pages the scan can reach (**not the draft or the excluded post**): 2 / 8 here. |
 | 2 | Press **Run next job** once. | One batch: 2 of the 6 posts that can be scanned. |
 | 3 | Reload the page. | The next scan is queued for about 10 minutes from now. |
 | 4 | Keep pressing **Run next job**, reloading after each scan, until all 6 are scanned. | The 5 posts and the page are scanned, their links are in the Links table; the draft and the excluded post are not. |
 | 5 | Open Link Fixer. | Onboarding **ends** and the "Link Statistics Overview" shows. |
 | 6 | Publish the draft. | Its link is found as it is published. |
 
-On 1.5.0-RC1 step 5 fails: `Dashboard_Statistics::get_post_count()` counts every post without link data as unscanned, including posts on the Link Fixer excluded posts list, which the scan never touches (`Scan_Posts_Event` skips them and `WP_Post_Controller::process_links_in_content()` returns early). So "Posts Checked" stops one short (8 / 9 here) and onboarding only ends when its 7 days run out.
+On 1.5.0-RC1 steps 1 and 5 fail. `Dashboard_Statistics::get_post_count()` counts every post without link data as unscanned, including:
+
+- posts on the Link Fixer excluded posts list, which the scan never touches (`Scan_Posts_Event` skips them and `WP_Post_Controller::process_links_in_content()` returns early);
+- drafts. Its `WP_Query` sets no `post_status`, and on the Link Fixer Dashboard page the count includes drafts (11 here: 9 published, plus the Harness draft and WordPress's Privacy Policy draft), while the scan only reached published posts. A draft is only scanned when it is published.
+
+So RC1 shows "3 / 11" at the start and stops at "9 / 11" (10 / 11 once the draft is published), and onboarding only ends when its 7 days run out. On most sites there is at least one draft.

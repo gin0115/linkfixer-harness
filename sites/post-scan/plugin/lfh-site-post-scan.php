@@ -43,9 +43,13 @@ add_filter(
 		$posts    = array_map( 'intval', (array) ( $registry['posts'] ?? array() ) );
 		$ids      = static fn( $roles ) => array_values( array_map( static fn( $role ) => $posts[ $role ] ?? 0, $roles ) );
 
-		// Every published post and page counts towards "Posts Checked".
-		$total = (int) wp_count_posts( 'post' )->publish + (int) wp_count_posts( 'page' )->publish;
-		$ours  = count( Scenario_Post_Scan::SCANNABLE ) + 1;
+		// "Posts Checked" should count what the scan can reach: published posts and pages, less the excluded ones.
+		$excluded = array_filter(
+			Settings::get_link_fixer_excluded_posts(),
+			static fn( $post_id ) => 'publish' === get_post_status( $post_id )
+		);
+		$total    = (int) wp_count_posts( 'post' )->publish + (int) wp_count_posts( 'page' )->publish - count( $excluded );
+		$ours     = count( Scenario_Post_Scan::SCANNABLE );
 
 		$scanned = static fn( $roles, $is, $say ) => array(
 			'type'  => 'meta_count',
@@ -84,7 +88,7 @@ add_filter(
 				array(
 					'id'     => 'start',
 					'do'     => 'Open Link Fixer (its Dashboard page).',
-					'expect' => sprintf( 'Onboarding is in progress: "Posts Checked" shows %1$d / %2$d (none of the %3$d Harness posts yet), and a scan is waiting.', $total - $ours, $total, $ours ),
+					'expect' => sprintf( 'Onboarding is in progress, and a scan is waiting. "Posts Checked" shows %1$d / %2$d: it counts the published posts and pages the scan can reach (not the draft or the excluded post), and none of the %3$d Harness ones is done yet.', $total - $ours, $total, $ours ),
 					'link'   => 'admin:admin.php?page=iawmlf-dashboard',
 					'when'   => array( $page, $scanned( Scenario_Post_Scan::SCANNABLE, 0, '' ) ),
 					'checks' => array(
