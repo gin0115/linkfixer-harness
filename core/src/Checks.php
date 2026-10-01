@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class Checks {
 
-	public const SERVER_TYPES = array( 'option', 'action', 'link_row', 'calls' );
+	public const SERVER_TYPES = array( 'option', 'action', 'link_row', 'calls', 'post_meta' );
 
 	/**
 	 * Whether a check is answered on the server.
@@ -39,6 +39,7 @@ class Checks {
 	 * link_row - url, field (broken, excluded, archived, archived_href, process, checks, last_code, redirect, message),
 	 *            and is (equals) or has (contains).
 	 * calls    - method, url_has, min and optionally max.
+	 * post_meta - post, key, and is (equals) or within (a timestamp within that many seconds of now); neither means set.
 	 *
 	 * @param array<string, mixed> $check The check.
 	 *
@@ -110,6 +111,21 @@ class Checks {
 					'say'    => $check['say'] ?? sprintf( 'Archive.org was asked %1$s about %2$s', $check['method'], $check['url_has'] ),
 					'pass'   => $count >= (int) ( $check['min'] ?? 1 ) && ( ! isset( $check['max'] ) || $count <= (int) $check['max'] ),
 					'detail' => 'found ' . $count,
+				);
+
+			case 'post_meta':
+				$actual = get_post_meta( (int) $check['post'], (string) $check['key'], true );
+				if ( isset( $check['within'] ) ) {
+					$pass = '' !== $actual && abs( time() - (int) $actual ) <= (int) $check['within'];
+				} elseif ( array_key_exists( 'is', $check ) ) {
+					$pass = self::same( $actual, $check['is'] );
+				} else {
+					$pass = '' !== $actual;
+				}
+				return array(
+					'say'    => $check['say'] ?? sprintf( 'Post %1$d: %2$s', $check['post'], $check['key'] ),
+					'pass'   => $pass,
+					'detail' => 'found ' . wp_json_encode( $actual ),
 				);
 		}
 
