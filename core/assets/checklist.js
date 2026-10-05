@@ -123,8 +123,10 @@
 				// most (the most waiting at the same moment) or seconds (first sent to last answered).
 				const all = ( window.LFH_LOG && window.LFH_LOG.fetches ) || [];
 				const done = all.filter( ( f ) => f.ended );
+				// A check stops waiting when its response arrives (answered), not when watch.js has read it (ended).
+				const answeredAt = ( f ) => f.answered || f.ended;
 				const most = all.reduce(
-					( top, a ) => Math.max( top, all.filter( ( b ) => b.started <= a.started && ( ! b.ended || b.ended > a.started ) ).length ),
+					( top, a ) => Math.max( top, all.filter( ( b ) => b.started <= a.started && ( ! answeredAt( b ) || answeredAt( b ) > a.started ) ).length ),
 					0
 				);
 				const seconds = done.length ? ( Math.max( ...done.map( ( f ) => f.ended ) ) - Math.min( ...all.map( ( f ) => f.started ) ) ) / 1000 : 0;

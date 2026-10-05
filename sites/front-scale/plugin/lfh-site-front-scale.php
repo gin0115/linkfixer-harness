@@ -62,9 +62,9 @@ add_filter(
 				array(
 					'id'     => 'at-once',
 					'do'     => 'Look at how the checks were sent.',
-					'expect' => 'No more than 6 checks wait at the same time. Each one holds a PHP worker on the server while Archive.org answers, so a post with many links should not take all of them at once.',
+					'expect' => 'No more than 2 checks wait at the same time (the Link Fixer\'s limit since 1.5.0-RC2). Each one holds a PHP worker on the server while Archive.org answers, so a post with many links should not take all of them at once.',
 					'when'   => array( $settled ),
-					'checks' => array( $fetches( 'most', 'max', 6, 'At most 6 checks at once' ) ),
+					'checks' => array( $fetches( 'most', 'max', 2, 'At most 2 checks at once' ) ),
 				),
 				array(
 					'id'     => 'second-visit',

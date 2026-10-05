@@ -20,6 +20,28 @@ Written against Link Fixer **1.5.0-RC1**.
 
 If the Playground shows a grey page with a broken document icon, load the link again (a Playground hiccup, not the site).
 
+Keep the browser tab in view while a front end page is being checked. The Link Fixer only acts on links that are on screen, and the browser treats a tab in the background, or a minimised window, as off screen, so nothing happens there.
+
+### Choosing the Link Fixer version
+
+The launcher opens any site with any Link Fixer release that has the plugin zip attached:
+
+https://gin0115.github.io/linkfixer-harness/launch.html
+
+Pick a site and a version and press **Launch**, or link straight to one:
+
+```
+https://gin0115.github.io/linkfixer-harness/launch.html?site=permissions&version=1.5.0-RC2
+```
+
+| Parameter | Means | Default |
+|---|---|---|
+| `site` | the folder under `sites/`; with it the page goes straight to Playground | none, the page shows the form |
+| `version` | a Link Fixer release tag, such as `1.4.3` or `1.5.0-RC2` | the release in the site's `blueprint.json` |
+| `ref` | a branch or commit of this repo, for the blueprint and the harness zips | `main` |
+
+The launcher reads the site's `blueprint.json` from `raw.githubusercontent.com` at `ref`, swaps in the release zip and the ref, and opens Playground with it. Only released versions can be launched: code that is not released has no zip (see "Running a site against local code").
+
 Every site has a `CHECKLIST.md` with the same steps in a table, so the steps can also be followed without the panel, or by Puppeteer or Playwright.
 
 ---
@@ -27,6 +49,8 @@ Every site has a `CHECKLIST.md` with the same steps in a table, so the steps can
 ## 2. The sites
 
 Open link pattern: `https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/sites/<site>/blueprint.json`
+
+With another Link Fixer release: `https://gin0115.github.io/linkfixer-harness/launch.html?site=<site>&version=<release>`
 
 "Result on 1.5.0-RC1" is what the checklist gave when run on the release candidate. A failing item is a problem in the Link Fixer unless noted.
 
@@ -93,7 +117,7 @@ Also checked and found to be fine: the archiving jobs, retries and Archive.org's
 
 Every site's blueprint installs:
 
-1. **The Link Fixer** release zip (currently `1.5.0-RC1` from the GitHub release).
+1. **The Link Fixer** release zip (currently `1.5.0-RC2` from the GitHub release; the launcher swaps in another release).
 2. **The harness core** (`zips/core.zip`, folder `linkfixer-harness`): the shared helper, described below.
 3. **The site's own plugin** (`zips/<site>.zip`, folder `lfh-site-<site>`): its seed data (a **scenario**) and its checklist.
 
@@ -190,15 +214,56 @@ Playground runs WordPress on SQLite. Two Link Fixer queries need MySQL features 
 4. Point `blueprint.json` at `zips/<site>.zip` and seed with `\LinkFixer_Harness\Scenarios::get( '<slug>' )->seed();`.
 5. Write `CHECKLIST.md`, add a row to the README, run `./build.sh`, and commit the zips with the change.
 
-To test a change before the `raw.githubusercontent.com` cache (a few minutes) catches up, open the blueprint with the zip addresses pinned to the commit instead of `main`.
+To test a change before the `raw.githubusercontent.com` cache (a few minutes) catches up, open it through the launcher with the commit as `ref`: `launch.html?site=<site>&ref=<commit>`.
 
 ---
 
-## 6. Limits and things that can break
+## 6. Running a site against local code
+
+The launcher only installs released zips. To test Link Fixer code that is not released (a branch, a fix before its PR), run the site on your own machine with the Playground command line tool, with your working copy mounted in place of the zip.
+
+The working copy must be ready to run: `composer install` done (the plugin loads `vendor/autoload.php`) and `npm run build` done (`assets/js/build/`).
+
+1. Write a local blueprint. Copy the site's `blueprint.json`, replace the three `installPlugin` steps with `activatePlugin` steps for the mounted folders, and add a first step that allows logging in from the address bar:
+
+```json
+{
+	"landingPage": "/wp-admin/",
+	"preferredVersions": { "php": "8.3", "wp": "latest" },
+	"steps": [
+		{ "step": "defineWpConfigConsts", "consts": { "PLAYGROUND_FORCE_AUTO_LOGIN_ENABLED": true } },
+		{ "step": "activatePlugin", "pluginPath": "internet-archive-wayback-machine-link-fixer/internet-archive-wayback-machine-link-fixer.php" },
+		{ "step": "activatePlugin", "pluginPath": "linkfixer-harness/linkfixer-harness.php" },
+		{ "step": "activatePlugin", "pluginPath": "lfh-site-<site>/lfh-site-<site>.php" },
+		{ "step": "runPHP", "code": "<?php require_once '/wordpress/wp-load.php'; \\LinkFixer_Harness\\Scenarios::get( '<slug>' )->seed();" }
+	]
+}
+```
+
+2. Start it, mounting the Link Fixer working copy, this repo's `core/` and the site's `plugin/`:
+
+```
+npx @wp-playground/cli@latest server --port=9401 --login --blueprint=local.blueprint.json \
+  --mount=<link fixer working copy>:/wordpress/wp-content/plugins/internet-archive-wayback-machine-link-fixer \
+  --mount=<this repo>/core:/wordpress/wp-content/plugins/linkfixer-harness \
+  --mount=<this repo>/sites/<site>/plugin:/wordpress/wp-content/plugins/lfh-site-<site>
+```
+
+3. When it prints `Ready! WordPress is running on http://127.0.0.1:9401`, open `http://127.0.0.1:9401/wp-admin/?playground_force_auto_login_as_user=admin` (or the user the site's blueprint logs in as).
+
+Changes to the working copy show on the next page load; rebuild the assets after changing JavaScript.
+
+Running several sites at once: give each its own `--port`. The browser shares cookies between ports on the same host, and Playground skips its automatic login once any of them has set its `playground_auto_login_already_happened` cookie, which is why the address bar login above is needed.
+
+---
+
+## 7. Limits and things that can break
 
 - **Exact wording and markup.** Many checks match the Link Fixer's English text ("Link updated successfully.") or its HTML (`#iawmlf_dashboard_widget`, `th.column-wayback_archived`). Copy or markup changes fail checks without a real bug.
 - **Seeding writes the Link Fixer's own storage** (its link table and option names). If those change, seeding breaks.
 - **Order matters on some sites**: steps depend on earlier ones (Auto Archiver, Archive.org offline, the bulk actions limit is per minute).
 - **One request at a time.** Playground's PHP may not run two requests in parallel, so problems that need two visitors at the same moment (two checks of the same link racing) cannot be shown here.
-- **The release is fixed in each blueprint.** Testing another Link Fixer version means changing the release zip address in every `blueprint.json`.
+- **Released versions only, online.** The launcher swaps in any Link Fixer release with the plugin zip attached. Code that is not released has to be run locally (section 6).
+- **A visible tab for the front end.** The Link Fixer's front end script only acts on links on screen, so a background tab or minimised window shows nothing happening.
+- **The front end panel waits for queued checks.** The Link Fixer sends at most 2 link checks at a time, so on a post with many due links the last checks start well after their links show. The panel keeps a link "waiting" while other checks are still going.
 - **Not covered**: the developer filters one by one, upgrading from 1.4.3 (no table changes between the two), uninstalling, and speed with a very large links table (the `url` and `redirect_url` columns have no index; not measured).

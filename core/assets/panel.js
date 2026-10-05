@@ -229,8 +229,13 @@
 		const f = a.fetches[ 0 ];
 		const sinceVisible = Date.now() - row.visibleAt;
 
+		// The Link Fixer sends checks a few at a time, so later ones can start well after
+		// their link showed. Keep waiting while its queue is still working through them.
+		const lastAnswered = Math.max( 0, ...LOG.fetches.map( ( x ) => x.answered || x.ended || 0 ) );
+		const draining = LOG.fetches.some( ( x ) => ! x.ended ) || Date.now() - lastAnswered < 1500;
+
 		// Wait for a check that should come, or long enough for one that should not.
-		if ( e.wantsCheck && ( ! f || ! f.ended ) && sinceVisible < 8000 ) {
+		if ( e.wantsCheck && ( ! f || ! f.ended ) && ( sinceVisible < 8000 || draining ) ) {
 			row.verdict = 'waiting';
 			return;
 		}

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Link Fixer Harness Launcher</title>
+	<style>
+		:root {
+			--bg: #ffffff;
+			--text: #1d2327;
+			--muted: #646970;
+			--line: #dcdcde;
+			--accent: #2271b1;
+			--error: #b32d2e;
+			--field: #ffffff;
+		}
+		@media ( prefers-color-scheme: dark ) {
+			:root {
+				--bg: #1d2327;
+				--text: #f0f0f1;
+				--muted: #a7aaad;
+				--line: #3c434a;
+				--accent: #72aee6;
+				--error: #f86368;
+				--field: #2c3338;
+			}
+		}
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			padding: 32px 16px;
+			background: var( --bg );
+			color: var( --text );
+			font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+		}
+		main { max-width: 640px; margin: 0 auto; }
+		h1 { font-size: 24px; margin: 0 0 8px; }
+		p { margin: 0 0 16px; color: var( --muted ); }
+		label { display: block; font-weight: 600; margin: 16px 0 4px; }
+		select, input {
+			width: 100%;
+			padding: 8px;
+			border: 1px solid var( --line );
+			border-radius: 4px;
+			background: var( --field );
+			color: var( --text );
+			font: inherit;
+		}
+		.hint { font-size: 14px; margin: 4px 0 0; }
+		button {
+			margin-top: 24px;
+			padding: 10px 20px;
+			border: 0;
+			border-radius: 4px;
+			background: var( --accent );
+			color: #fff;
+			font: inherit;
+			font-weight: 600;
+			cursor: pointer;
+		}
+		#share { margin-top: 24px; word-break: break-all; font-size: 14px; }
+		#share a { color: var( --accent ); }
+		#status { margin-top: 16px; }
+		#status.error { color: var( --error ); }
+	</style>
+</head>
+<body>
+<main>
+	<h1>Link Fixer Harness</h1>
+	<p>Opens a harness site in WordPress Playground with the Link Fixer release you choose.</p>
+
+	<form id="form">
+		<label for="site">Site</label>
+		<select id="site" name="site" required></select>
+
+		<label for="version">Link Fixer version</label>
+		<select id="version" name="version"></select>
+		<p class="hint">Releases with the plugin zip attached. "As in the blueprint" keeps the version the site was written for.</p>
+
+		<label for="ref">Harness version</label>
+		<input id="ref" name="ref" value="main" spellcheck="false">
+		<p class="hint">A branch or commit of the harness repo. Use a commit for a few minutes after a push, as raw.githubusercontent.com serves old zips for a while.</p>
+
+		<button type="submit">Launch</button>
+	</form>
+
+	<div id="share"></div>
+	<div id="status" role="status"></div>
+</main>
+
+<script>
+( function () {
+	'use strict';
+
+	const HARNESS = 'gin0115/linkfixer-harness';
+	const PLUGIN = 'a8cteam51/internet-archive-wayback-machine-link-fixer';
+	const ZIP = 'internet-archive-wayback-machine-link-fixer.zip';
+
+	// Only plain names reach a URL.
+	const SAFE = /^[0-9A-Za-z][0-9A-Za-z._\/-]*$/;
+
+	const form = document.getElementById( 'form' );
+	const status = document.getElementById( 'status' );
+	const share = document.getElementById( 'share' );
+	const params = new URLSearchParams( window.location.search );
+
+	const say = ( text, isError ) => {
+		status.textContent = text;
+		status.className = isError ? 'error' : '';
+	};
+
+	// The shareable launcher link for the current choice.
+	const launcherUrl = ( site, version, ref ) => {
+		const q = new URLSearchParams( { site } );
+		if ( version ) {
+			q.set( 'version', version );
+		}
+		if ( ref && 'main' !== ref ) {
+			q.set( 'ref', ref );
+		}
+		return window.location.origin + window.location.pathname + '?' + q.toString();
+	};
+
+	// Fetch the site's blueprint at the harness ref, point it at the chosen release and ref, open Playground.
+	async function launch( site, version, ref ) {
+		if ( ! SAFE.test( site ) || ( version && ! SAFE.test( version ) ) || ! SAFE.test( ref ) ) {
+			say( 'The site, version or harness version has characters that are not allowed.', true );
+			return;
+		}
+
+		say( 'Loading the ' + site + ' blueprint…' );
+
+		const response = await fetch( 'https://raw.githubusercontent.com/' + HARNESS + '/' + ref + '/sites/' + site + '/blueprint.json' );
+		if ( ! response.ok ) {
+			say( 'No blueprint for "' + site + '" at harness version "' + ref + '" (HTTP ' + response.status + ').', true );
+			return;
+		}
+
+		let blueprint = JSON.stringify( await response.json() );
+
+		// The harness zips: from the chosen ref, not main.
+		blueprint = blueprint.split( '/' + HARNESS + '/main/' ).join( '/' + HARNESS + '/' + ref + '/' );
+
+		// The Link Fixer zip: from the chosen release.
+		if ( version ) {
+			blueprint = blueprint.replace( /\/releases\/download\/[^/]+\//g, '/releases/download/' + version + '/' );
+		}
+
+		// A new r each time, as Playground can reuse a cached site for the same address.
+		window.location.href = 'https://playground.wordpress.net/?r=' + Date.now() + '#' + encodeURIComponent( blueprint );
+	}
+
+	// Fill the site list from the harness repo, and the version list from the Link Fixer releases.
+	async function fill() {
+		const ref = params.get( 'ref' ) || 'main';
+		document.getElementById( 'ref' ).value = ref;
+
+		const siteSelect = document.getElementById( 'site' );
+		try {
+			const entries = await fetch( 'https://api.github.com/repos/' + HARNESS + '/contents/sites?ref=' + encodeURIComponent( ref ) ).then( ( r ) => r.json() );
+			entries.filter( ( e ) => 'dir' === e.type ).forEach( ( e ) => siteSelect.add( new Option( e.name, e.name ) ) );
+		} catch ( e ) {
+			say( 'Could not list the sites (GitHub allows 60 lookups an hour without a login). You can still use a link with ?site=.', true );
+		}
+		if ( params.get( 'site' ) ) {
+			siteSelect.value = params.get( 'site' );
+		}
+
+		const versionSelect = document.getElementById( 'version' );
+		versionSelect.add( new Option( 'As in the blueprint', '' ) );
+		try {
+			const releases = await fetch( 'https://api.github.com/repos/' + PLUGIN + '/releases?per_page=30' ).then( ( r ) => r.json() );
+			releases
+				.filter( ( r ) => ( r.assets || [] ).some( ( a ) => ZIP === a.name ) )
+				.forEach( ( r ) => versionSelect.add( new Option( r.tag_name + ( r.prerelease ? ' (pre-release)' : '' ), r.tag_name ) ) );
+		} catch ( e ) {
+			// The blueprint's own version still works.
+		}
+		if ( params.get( 'version' ) ) {
+			versionSelect.value = params.get( 'version' );
+		}
+	}
+
+	form.addEventListener( 'submit', ( event ) => {
+		event.preventDefault();
+		const site = form.site.value;
+		const version = form.version.value;
+		const ref = form.ref.value.trim() || 'main';
+		const link = launcherUrl( site, version, ref );
+		share.innerHTML = '';
+		share.append( 'Link to this choice: ' );
+		const a = document.createElement( 'a' );
+		a.href = link;
+		a.textContent = link;
+		share.append( a );
+		launch( site, version, ref ).catch( ( e ) => say( String( e ), true ) );
+	} );
+
+	// A link with ?site= opens Playground straight away.
+	if ( params.get( 'site' ) ) {
+		launch( params.get( 'site' ), params.get( 'version' ) || '', params.get( 'ref' ) || 'main' ).catch( ( e ) => say( String( e ), true ) );
+	}
+
+	fill();
+}() );
+</script>
+</body>
+</html>

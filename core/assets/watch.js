@@ -30,6 +30,8 @@
 			url,
 			link: null,
 			started: Date.now(),
+			// When the response arrived. ended is later: it waits for this watcher's own read of the body.
+			answered: null,
 			ended: null,
 			status: null,
 			json: null,
@@ -48,6 +50,7 @@
 
 		return originalFetch.apply( this, arguments ).then(
 			( response ) => {
+				entry.answered = Date.now();
 				entry.status = response.status;
 				try {
 					entry.calls = JSON.parse(
@@ -71,6 +74,7 @@
 			},
 			( error ) => {
 				entry.error = String( error );
+				entry.answered = Date.now();
 				entry.ended = Date.now();
 				emit( 'lfh:fetch', entry );
 				throw error;
