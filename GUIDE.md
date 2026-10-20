@@ -68,7 +68,7 @@ With another Link Fixer release: `https://gin0115.github.io/linkfixer-harness/la
 
 | Site | What it covers | Items | Result on 1.5.0-RC1 |
 |---|---|---|---|
-| [links-on-page](sites/links-on-page/CHECKLIST.md) | One post with a link in every state, over three visits (fixed, broken, excluded every way, aged checks) | front end panel, 17 links | all pass |
+| [links-on-page](sites/links-on-page/CHECKLIST.md) | One post with a link in every state, over three visits (fixed, broken, blocked, redirected, excluded every way, aged checks) | front end panel, 20 links | all pass (L13, L14 and X06 added for 1.5.0-RC3: all 20 pass on RC3) |
 | [display-modes](sites/display-modes/CHECKLIST.md) | Five posts, one per fixer mode and link icon | front end panel, 25 checks | all pass |
 | [link-formats](sites/link-formats/CHECKLIST.md) | The same broken link written twelve ways (capitals, spaces, accents, ports, entities) | 1 | fails: 5 of 12 links not replaced |
 | [where-links-appear](sites/where-links-appear/CHECKLIST.md) | The blog home page, a Button block, an image link, a synced pattern | 3 | 2 pass, 1 fail (home page with an excluded first post) |
@@ -78,7 +78,7 @@ With another Link Fixer release: `https://gin0115.github.io/linkfixer-harness/la
 
 | Site | What it covers | Items | Result on 1.5.0-RC1 |
 |---|---|---|---|
-| [links-report](sites/links-report/CHECKLIST.md) | Link Fixer, Links: twelve links in every state, filters, search, the four bulk actions, link details | 16 | 16 pass |
+| [links-report](sites/links-report/CHECKLIST.md) | Link Fixer, Links: thirteen links in every state, filters, search, the four bulk actions, link details, the blocked link flag | 19 | 16 pass (items 16 to 18 added for 1.5.0-RC3: all 19 pass on RC3) |
 | [bulk-actions](sites/bulk-actions/CHECKLIST.md) | The four bulk actions on 60 links at once, a slow Archive.org, 10 snapshots a minute | 6 | 5 pass, 1 fail ("Validating" for refused links) |
 | [dashboard](sites/dashboard/CHECKLIST.md) | The Link Fixer Dashboard after onboarding: its six numbers and the tables they open, Recent Link Checks, Latest Links, the widget | 5 | 4 pass, 1 fail (Total Broken Links) |
 | [post-scan](sites/post-scan/CHECKLIST.md) | Content from before the plugin was installed, scanned in batches; onboarding ending | 6 | 4 pass, 2 fail ("Posts Checked") |
@@ -117,7 +117,7 @@ Also checked and found to be fine: the archiving jobs, retries and Archive.org's
 
 Every site's blueprint installs:
 
-1. **The Link Fixer** release zip (currently `1.5.0-RC2` from the GitHub release; the launcher swaps in another release).
+1. **The Link Fixer** release zip (currently `1.5.0-RC3` from the GitHub release; the launcher swaps in another release).
 2. **The harness core** (`zips/core.zip`, folder `linkfixer-harness`): the shared helper, described below.
 3. **The site's own plugin** (`zips/<site>.zip`, folder `lfh-site-<site>`): its seed data (a **scenario**) and its checklist.
 

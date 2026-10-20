@@ -12,8 +12,8 @@ Archive.org is replaced by a scripted stand-in: nothing leaves the site.
 2. In the panel checklist, these are all ticked:
    - Harness fake Archive.org clients are active
    - Link Fixer front-end script is loaded
-   - Every link has been on screen (17 of 17)
-   - Every link did what was predicted on this load (17 passed)
+   - Every link has been on screen (20 of 20)
+   - Every link did what was predicted on this load (20 passed)
    - No REST check for any excluded link
 3. Each link, on this first visit:
 
@@ -27,12 +27,15 @@ Archive.org is replaced by a scripted stand-in: nothing leaves the site.
 | L06 Broken, checked 30 minutes ago | **Not** checked, swapped from its stored broken state |
 | L07 Flaky | Checked, not swapped |
 | L08 Checker service offline | Check fails with an error, nothing recorded, not swapped |
-| L09 Blocks bots (403) | Checked, third 403, swapped |
+| L09 Blocks bots (403) | Checked, third 403, **not** swapped (from 1.5.0-RC3 a 403 counts as working) |
 | L10 Rate limited (429) | Checked, 429 counts as working, not swapped |
+| L13 Redirect (301) | Checked, 301 counts as working, not swapped |
+| L14 Broken, then blocked (403) | Checked, 403 counts as working, no longer broken, **not** swapped |
 | L11 Broken, no archive | Not checked, not swapped (nothing to swap to) |
 | L12 Below the fold | Only checked once you scroll to it, then swapped |
 | X01 Excluded by a settings rule | Never checked, never swapped |
 | X02 Excluded by the built-in list (LinkedIn) | Never checked, never swapped |
+| X06 Excluded by the built-in list (Medium) | Never checked, never swapped |
 | X03 Excluded by hand | Never checked, never swapped |
 | X04 Excluded by the system (no-access) | Never checked, never swapped |
 | X05 Excluded in this post only | Never checked, never swapped here |
@@ -40,14 +43,14 @@ Archive.org is replaced by a scripted stand-in: nothing leaves the site.
 ## 2. Four days later
 
 1. In the panel press **Age 4 days + reload**, then scroll slowly to the bottom.
-2. Panel: every link did what was predicted (17 passed).
+2. Panel: every link did what was predicted (20 passed).
 3. L04 has failed twice and is still **not** swapped.
 4. L06 is checked, works again and is **no longer** swapped.
 
 ## 3. Eight days later
 
 1. Press **Age 4 days + reload** again and scroll to the bottom.
-2. Panel: every link did what was predicted (17 passed).
+2. Panel: every link did what was predicted (20 passed).
 3. L04 has now failed three times in a row and **is** swapped.
 4. L07 keeps flipping between working and failing and is still **not** swapped.
 

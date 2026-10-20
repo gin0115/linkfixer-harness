@@ -162,7 +162,7 @@ class Scenario_Mixed_Links extends Scenario {
 					'url'     => self::url( 'l09-bot-blocked', 'check/403' ),
 					'history' => array( array( 403, 8 ), array( 403, 4 ) ),
 					'posts'   => array( 'main' ),
-					'expect'  => 'A third 403 on load. 403 is not a valid code, so it becomes broken and is swapped. This is the known false positive for sites that block bots.',
+					'expect'  => 'A third 403 on load. From 1.5.0-RC3 a 403 means the site blocks the link checker and counts as valid, so it is never broken and is NOT swapped. Before RC3 it became broken and was swapped (the false positive fixed in #395).',
 				)
 			),
 			self::link(
@@ -173,6 +173,27 @@ class Scenario_Mixed_Links extends Scenario {
 					'history' => array( array( 429, 12 ), array( 429, 8 ), array( 429, 4 ) ),
 					'posts'   => array( 'main' ),
 					'expect'  => '429 counts as a valid code, so it is checked but never broken.',
+				)
+			),
+			self::link(
+				array(
+					'id'      => 'L13',
+					'label'   => 'Redirect (301)',
+					'url'     => self::url( 'l13-redirect', 'check/301' ),
+					'history' => array( array( 301, 12 ), array( 301, 8 ), array( 301, 4 ) ),
+					'posts'   => array( 'main' ),
+					'expect'  => 'Checked on load, returns 301. From 1.5.0-RC3 a redirect counts as a valid code, so it is never broken and never swapped.',
+				)
+			),
+			self::link(
+				array(
+					'id'      => 'L14',
+					'label'   => 'Broken, then blocked (403)',
+					'url'     => self::url( 'l14-broken-then-blocked', 'check/403' ),
+					'history' => $failed,
+					'broken'  => true,
+					'posts'   => array( 'main' ),
+					'expect'  => 'Broken when the page loads. Checked on load, the checker returns 403. From 1.5.0-RC3 that counts as valid, so it is no longer broken and is NOT swapped.',
 				)
 			),
 			self::link(
@@ -210,6 +231,18 @@ class Scenario_Mixed_Links extends Scenario {
 					'exclusion' => 'builtin',
 					'posts'     => array( 'main' ),
 					'expect'    => 'Matches the built-in *.linkedin.com* rule. Not in the page link data, never checked, never swapped.',
+				)
+			),
+			self::link(
+				array(
+					'id'        => 'X06',
+					'label'     => 'Excluded: built-in list (Medium)',
+					'url'       => 'https://someone.medium.com/lfh-harness-x06',
+					'history'   => $failed,
+					'broken'    => true,
+					'exclusion' => 'builtin',
+					'posts'     => array( 'main' ),
+					'expect'    => 'Matches the built-in *.medium.com* rule, added in 1.5.0-RC3. Not in the page link data, never checked, never swapped.',
 				)
 			),
 			self::link(

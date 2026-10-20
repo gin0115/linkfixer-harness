@@ -1,6 +1,6 @@
 <?php
 /**
- * Scenario: twelve links in every state the Links report can show.
+ * Scenario: thirteen links in every state the Links report can show.
  *
  * @package LinkFixer_Harness
  */
@@ -38,7 +38,7 @@ class Scenario_Links_Report extends Scenario {
 	 * @return string
 	 */
 	public function summary(): string {
-		return 'Twelve links in every state the Links report can show, for filtering, searching, bulk actions and the link details screen.';
+		return 'Thirteen links in every state the Links report can show, for filtering, searching, bulk actions and the link details screen.';
 	}
 
 	/**
@@ -50,13 +50,13 @@ class Scenario_Links_Report extends Scenario {
 		return array(
 			'report' => array(
 				'title' => 'Harness: report links',
-				'intro' => 'This post holds the twelve links used by the Links report site. Go to Link Fixer, Links.',
+				'intro' => 'This post holds the thirteen links used by the Links report site. Go to Link Fixer, Links.',
 			),
 		);
 	}
 
 	/**
-	 * The twelve links.
+	 * The thirteen links.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 */
@@ -183,6 +183,15 @@ class Scenario_Links_Report extends Scenario {
 					'label'   => 'For "Verify link allows checking"',
 					'url'     => self::url( 'a12-validate', 'check/200/save/ok/status/no-access' ),
 					'history' => array( array( 200, 4 ) ),
+					'posts'   => $posts,
+				)
+			),
+			self::link(
+				array(
+					'id'      => 'A13',
+					'label'   => 'Site blocks the link checker (403)',
+					'url'     => self::url( 'a13-blocked', 'check/403' ),
+					'history' => array( array( 403, 12 ), array( 403, 8 ), array( 403, 4 ) ),
 					'posts'   => $posts,
 				)
 			),

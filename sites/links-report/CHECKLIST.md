@@ -2,7 +2,7 @@
 
 **Open:** https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/gin0115/linkfixer-harness/main/sites/links-report/blueprint.json
 
-Twelve seeded links, A1 to A12, one for each state the Links report (Link Fixer, Links) can show. The site opens on the report. The checklist panel sits in the bottom left and ticks each step off as it sees it happen, on screen and in the saved link data.
+Thirteen seeded links, A1 to A13, one for each state the Links report (Link Fixer, Links) can show. The site opens on the report. The checklist panel sits in the bottom left and ticks each step off as it sees it happen, on screen and in the saved link data.
 
 | Link | Seeded as |
 |---|---|
@@ -18,10 +18,11 @@ Twelve seeded links, A1 to A12, one for each state the Links report (Link Fixer,
 | A10 | Archived to an old 2020 snapshot; a 2024 one exists |
 | A11 | For creating a new snapshot |
 | A12 | For "Verify link allows checking"; Archive.org answers no-access |
+| A13 | Every check returned 403: the site blocks the link checker |
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | Open Link Fixer, Links (the site opens here). | A table of the twelve links. |
+| 1 | Open Link Fixer, Links (the site opens here). | A table of the thirteen links. |
 | 2 | Choose **Show broken links** and press **Filter**. | Only A1, A3, A6, A7 and A8. |
 | 3 | Set the filter back to All and search for `a3`. | One row: A3. |
 | 4 | Search for `nothing-matches`. | "No links to display." |
@@ -36,4 +37,7 @@ Twelve seeded links, A1 to A12, one for each state the Links report (Link Fixer,
 | 13 | Open A6. | Link Exclusion: currently excluded; "Exclude this link" is ticked and can be changed. |
 | 14 | Open A7. | Link Exclusion: excluded by your exclusion settings list; the checkbox cannot be changed. |
 | 15 | Open A8. | Link Exclusion: excluded by the built-in exclusion list; the checkbox cannot be changed. |
-| 16 | Open A2, tick **Exclude this link** and confirm. | "Link updated successfully." and it now says currently excluded. |
+| 16 | Back to all links, search for `a13`. | One row: A13. Link Health is a shield ("The site blocks the Internet Archive link checker"), not a tick or the broken icon, and it is not broken. |
+| 17 | Open A13. | Current Status says the site blocks the Internet Archive link checker and the link will not be redirected, not "still accessible". |
+| 18 | Back to the Links table, open **Help** and choose **Table Columns**. | Under Link Health, the shield is listed and explained. |
+| 19 | Open A2, tick **Exclude this link** and confirm. | "Link updated successfully." and it now says currently excluded. |

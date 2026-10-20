@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Link Fixer Harness site: links report
- * Description: Seeds twelve links in every state the Links report can show. The checklist panel walks through the table, its filters and search, the four bulk actions and the link details screen.
+ * Description: Seeds thirteen links in every state the Links report can show. The checklist panel walks through the table, its filters and search, the four bulk actions and the link details screen.
  * Version: 0.1.0
  * Requires PHP: 7.4
  * Requires Plugins: linkfixer-harness
@@ -63,15 +63,15 @@ add_filter(
 
 		return array(
 			'title' => 'Links report',
-			'intro' => 'Twelve seeded links, A1 to A12, one for each state the Links report can show. Do each step; each one ticks itself off when the panel sees it happen.',
+			'intro' => 'Thirteen seeded links, A1 to A13, one for each state the Links report can show. Do each step; each one ticks itself off when the panel sees it happen.',
 			'items' => array(
 				array(
 					'id'     => 'list',
 					'do'     => 'Open Link Fixer, Links.',
-					'expect' => 'A table of the twelve seeded links, A1 to A12.',
+					'expect' => 'A table of the thirteen seeded links, A1 to A13.',
 					'link'   => 'admin:admin.php?page=iawmlf-links',
 					'when'   => array( $page, $param( 'iawmlf_link_id', '' ), $param( 'iawmlf_status', '' ), $param( 's', '' ) ),
-					'checks' => array( $count( 12, 'The table has 12 rows' ) ),
+					'checks' => array( $count( 13, 'The table has 13 rows' ) ),
 				),
 				array(
 					'id'     => 'filter-broken',
@@ -268,6 +268,68 @@ add_filter(
 							'selector' => $toggle . '[disabled]',
 							'say'      => 'The checkbox cannot be changed',
 						),
+					),
+				),
+				array(
+					'id'     => 'health-a13',
+					'do'     => 'Back to all links, then search for a13.',
+					'expect' => 'One row: A13. Its checks all returned 403, so its Link Health is a shield ("The site blocks the Internet Archive link checker, so this link cannot be checked"), not a tick and not the broken icon (1.5.0-RC3).',
+					'when'   => array( $page, $param( 's', 'a13' ) ),
+					'checks' => array(
+						$count( 1, 'The table has 1 row' ),
+						array(
+							'type'     => 'exists',
+							'selector' => '#the-list .dashicons-shield[title*="blocks the Internet Archive link checker"]',
+							'say'      => 'Link Health shows the shield',
+						),
+						array(
+							'type'     => 'missing',
+							'selector' => '#the-list .dashicons-yes-alt[title="Link is active"]',
+							'say'      => 'It is not shown as active',
+						),
+						array(
+							'type'  => 'link_row',
+							'url'   => 'https://harness.test/a13-blocked/check/403',
+							'field' => 'broken',
+							'is'    => false,
+							'say'   => 'A13 is not saved as broken',
+						),
+					),
+				),
+				array(
+					'id'     => 'details-a13',
+					'do'     => 'Open A13.',
+					'expect' => 'Current Status says the site blocks the Internet Archive link checker, so the original URL cannot be checked and it will not be redirected, instead of saying it is still accessible (1.5.0-RC3).',
+					'when'   => $details( 'a13-blocked' ),
+					'checks' => array(
+						$text( '#iawmlf_link_checks .iawmlf_link_broken', 'blocks the Internet Archive link checker', 'Current Status says the site blocks the link checker' ),
+						array(
+							'type'     => 'text',
+							'selector' => '#iawmlf_link_checks .iawmlf_link_broken',
+							'lacks'    => 'still accessible',
+							'say'      => 'It does not say the link is still accessible',
+						),
+					),
+				),
+				array(
+					'id'     => 'help-shield',
+					'do'     => 'Back to the Links table, open Help at the top right and choose "Table Columns".',
+					'expect' => 'Under Link Health, the shield is listed: "The site blocks the Internet Archive link checker, so this link cannot be checked" (1.5.0-RC3).',
+					'when'   => array(
+						$page,
+						array(
+							'type'     => 'visible',
+							'selector' => '#iawmlf_help_tab_columns',
+							'is'       => true,
+						),
+					),
+					'checks' => array(
+						array(
+							'type'     => 'exists',
+							'selector' => '#iawmlf_help_tab_columns .dashicons-shield',
+							'say'      => 'The shield icon is listed',
+						),
+						$text( '#iawmlf_help_tab_columns', 'blocks the Internet Archive link checker', 'It explains the shield' ),
 					),
 				),
 				array(
