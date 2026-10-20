@@ -12,7 +12,7 @@ Sixty working links, B01 to B60, all archived in 2020. The Archive.org stand-in 
 | 2 | Select all, "Check link status", Apply. | Each link checked once, 60 "checked successfully" notices, back within a minute. |
 | 3 | Select all, "Update to latest snapshot", Apply. | All 60 move from the 2020 to the 2024 snapshot, 60 "updated successfully" notices. |
 | 4 | Select all, "Create new snapshot", Apply. | One notice lists all 60 as added to the queue; 60 "Create a new snapshot" jobs wait; Archive.org is not asked anything yet. |
-| 5 | Press **Run all jobs**. | Each job asks Archive.org once: 10 get a snapshot and a snapshot check, the 50 refused are put back for 24 hours. |
+| 5 | Press **Run all jobs**. | Each job asks Archive.org once. It accepts 10 a minute: every accepted one gets a snapshot check, every refused one is put back for 24 hours. If the run takes longer than a minute, the next minute's jobs get another 10. |
 | 6 | Wait a minute, select all, "Verify link allows checking", Apply. | 10 verification requests. **Only those 10 say "Validating"**; the 50 refused ones say they were refused. |
 
 On 1.5.0-RC1 step 6 fails: `Report_Table::process_excluded_links()` ignores the result of `Validate_Link_Action::validate_link()`, so every link says "Validating ... to ensure we can check its current status", including the 50 that Archive.org refused and that have nothing queued.

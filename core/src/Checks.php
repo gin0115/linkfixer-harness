@@ -34,8 +34,9 @@ class Checks {
 	 * Runs one server side check.
 	 *
 	 * option   - name, and is (equals, null means not set) or has (a list or text contains it).
-	 * action   - hook, status (one or a list), count or min, and optionally args, url (only that link's jobs),
+	 * action   - hook, status (one or a list), count, min or count_calls, and optionally args, url (only that link's jobs),
 	 *            within (seconds either side of now) or due_min / due_max (seconds from now).
+	 *            count_calls - [ method, outcome text ]: as many jobs as logged calls of that method with that outcome.
 	 * link_row - url, field (broken, excluded, archived, archived_href, process, checks, last_code, redirect, message),
 	 *            and is (equals) or has (contains).
 	 * calls    - method, url_has, min and optionally max.
@@ -85,10 +86,16 @@ class Checks {
 
 			case 'action':
 				$count = count( self::action_ids( $check ) );
+
+				// Expect as many jobs as there were calls with that outcome, however long the run took.
+				if ( isset( $check['count_calls'] ) ) {
+					$check['count'] = Call_Log::count_recent( (string) $check['count_calls'][0], (string) $check['count_calls'][1], YEAR_IN_SECONDS );
+				}
+
 				return array(
 					'say'    => $check['say'] ?? sprintf( 'Background job "%1$s" (%2$s)', $check['hook'], implode( ' or ', (array) $check['status'] ) ),
 					'pass'   => isset( $check['count'] ) ? (int) $check['count'] === $count : $count >= (int) ( $check['min'] ?? 1 ),
-					'detail' => 'found ' . $count,
+					'detail' => 'found ' . $count . ( isset( $check['count_calls'] ) ? ', expected ' . $check['count'] : '' ),
 				);
 
 			case 'link_row':
