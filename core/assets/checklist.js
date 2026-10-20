@@ -304,6 +304,10 @@
 				break;
 			}
 			ran.push( ...result.ran );
+			// The clean-up only runs once nothing else is waiting, and queues itself again, so stop after it.
+			if ( result.ran.some( ( j ) => j.hook === 'iawmlf_failed_event_garbage_collection' ) ) {
+				break;
+			}
 		}
 		lastRun = ran.length
 			? ran.map( ( j ) => j.label + ( j.link ? ' (' + shortLink( j.link ) + ')' : '' ) + ': ' + j.status + ( j.message ? ', ' + j.message : '' ) ).join( ' | ' )

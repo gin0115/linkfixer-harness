@@ -35,6 +35,11 @@ class Queue {
 	);
 
 	/**
+	 * The Link Fixer's daily clean-up, which queues itself again each time it runs.
+	 */
+	private const CLEAN_UP = 'iawmlf_failed_event_garbage_collection';
+
+	/**
 	 * Registers the hooks.
 	 *
 	 * @return void
@@ -113,8 +118,19 @@ class Queue {
 			if ( empty( $pending ) ) {
 				break;
 			}
-			\ActionScheduler::runner()->process_action( $pending[0]['id'], 'LinkFixer Harness' );
-			$ran[] = self::describe( $pending[0]['id'] );
+
+			// The daily clean-up queues itself again each time it runs (since 1.5.0-RC2), so it would
+			// always be next. Run it only when nothing else is waiting.
+			$others = array_values( array_filter( $pending, static fn( $job ) => self::CLEAN_UP !== $job['hook'] ) );
+			$next   = empty( $others ) ? $pending[0] : $others[0];
+
+			\ActionScheduler::runner()->process_action( $next['id'], 'LinkFixer Harness' );
+			$ran[] = self::describe( $next['id'] );
+
+			// Only the clean-up left: it has run, and running it again would just queue it again.
+			if ( empty( $others ) ) {
+				break;
+			}
 		}
 
 		return array(
